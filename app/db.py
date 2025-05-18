@@ -10,23 +10,26 @@ def get_db_connection():
         database="ChessDB"
     )
 
-def execute_sql_file(filepath):
-    with open(filepath, 'r') as file:
-        sql = file.read()
+def run_sql_file(filename):
+    db = get_db_connection()
+    cur = db.cursor()
 
-    # Split by ';' and remove empty statements
-    statements = [s.strip() for s in sql.split(';') if s.strip()]
+    with open(filename, 'r') as f:
+        command = f.read()
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    # Execute a statement; it can be single or multi.
+    cur.execute(command)
 
-    try:
-        for statement in statements:
-            cursor.execute(statement)
-        conn.commit()
-    except Error as e:
-        print(f"Error executing SQL file {filepath}: {e}")
-        conn.rollback()
-    finally:
-        cursor.close()
-        conn.close()
+    results = []
+
+    while cur.nextset():
+        result_set = cur.fetchall()
+        results.append(result_set)
+
+    cur.close()
+    db.commit()
+    db.close()
+
+    # Returns a 2D array with results[query_number][row_number]
+    return results
+        
