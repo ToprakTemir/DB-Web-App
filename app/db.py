@@ -3,7 +3,8 @@ from mysql.connector import Error
 
 def get_db_connection():
     return mysql.connector.connect(
-        host="localhost",
+        host="127.0.0.1",
+        port=3306,
         user="root",
         password="1234",
         database="ChessDB"
