@@ -17,8 +17,11 @@ def run_sql_file(filename):
     with open(filename, 'r') as f:
         command = f.read()
 
-    # Execute a statement; it can be single or multi.
-    cur.execute(command)
+    try:
+        # Execute a statement; it can be single or multi.
+        cur.execute(command)
+    except Exception as e:
+        print(e)
 
     results = []
 
