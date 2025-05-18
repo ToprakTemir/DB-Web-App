@@ -10,7 +10,7 @@ def get_db_connection():
         database="ChessDB"
     )
 
-def run_sql_file(filename):
+def execute_sql_file(filename):
     db = get_db_connection()
     cur = db.cursor()
 
