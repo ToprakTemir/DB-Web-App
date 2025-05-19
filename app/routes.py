@@ -1,6 +1,6 @@
 # app/routes.py
 
-from flask import Blueprint, render_template, redirect, request, session
+from flask import Blueprint, render_template, redirect, request, session, jsonify
 from .db import execute_sql_command
 
 main = Blueprint('main', __name__)
@@ -151,4 +151,22 @@ def add_user():
             if isinstance(results, str):
                 execute_sql_command(f"DELETE FROM TABLE Arbiters WHERE username = {username}")
 
+    return redirect('/dashboard/db-manager')
+
+@db_manager.route('/fetch-halls')
+def fetch_halls():
+    results = execute_sql_command("SELECT * FROM Halls;")
+    rows = results[0]
+    columns = ['hall_id', 'hall_name', 'country', 'capacity']
+
+    # Convert to list of dicts
+    result = [dict(zip(columns, row)) for row in rows]
+
+    return jsonify(result)
+
+@db_manager.route('/rename-hall', methods=['POST'])
+def rename_hall():
+    hall_id = request.form['hall_id']
+    new_name = request.form['new_hall_name']
+    results = execute_sql_command(f"UPDATE Halls SET hall_name = '{new_name}' WHERE hall_id = '{hall_id}';")
     return redirect('/dashboard/db-manager')

@@ -46,7 +46,10 @@ def execute_sql_command(command):
         print("Query execution failed:", e)
         return e
 
+    
     results = []
+    result_set = cur.fetchall()
+    results.append(result_set)
 
     while cur.nextset():
         result_set = cur.fetchall()

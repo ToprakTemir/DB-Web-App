@@ -308,16 +308,25 @@
         
         // Load halls for the rename hall form (would be implemented with backend)
         function loadHalls() {
-            // This would be an AJAX call to fetch halls from the server
-            // For now, we'll just show a placeholder
-            const hallSelect = document.getElementById('hall-id');
-            hallSelect.innerHTML = '<option value="">Select a Hall</option>' +
-                '<option value="1">Hall 1</option>' +
-                '<option value="2">Hall 2</option>' +
-                '<option value="3">Hall 3</option>';
+            fetch('/dashboard/db-manager/fetch-halls')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                 })
+                .then(data => {
+                    const hallSelect = document.getElementById('hall-id');
+                    hallSelect.innerHTML = '<option value="">Select a Hall</option>';
+                    data.forEach(hall => {
+                        const option = document.createElement('option');
+                        option.value = hall.hall_id;
+                        option.textContent = hall.hall_name;
+                        hallSelect.appendChild(option);
+                    });
+                 })
+                .catch(error => {
+                    console.error('Error loading halls:', error);
+                });
         }
-        
-        // Initialize the page
         window.onload = function() {
             loadHalls();
         };
