@@ -2,6 +2,7 @@
 
 from flask import Blueprint, render_template, redirect, request, session, jsonify
 from .db import execute_sql_command
+import json
 
 main = Blueprint('main', __name__)
 data = Blueprint('data', __name__, url_prefix='/data')
@@ -91,7 +92,7 @@ def fetch_opponent_teams():
     return jsonify(result)
 
 @data.route('/tables')
-def tables():
+def fetch_tables():
     hall_id = request.args.get('hall_id')
 
     results = execute_sql_command(f"SELECT table_id FROM Tables WHERE hall_id = {hall_id};")
@@ -103,7 +104,103 @@ def tables():
 
     return jsonify(result)
 
+@data.route('/unassigned-matches')
+def fetch_unassigned_matches():
+    response = fetch_coach_matches()
+    matches = json.loads(response.get_data(as_text=True))
 
+    # Filter matches with either side unassigned
+    unassigned_matches = [match for match in matches if not match['player_name']]
+
+    return jsonify(unassigned_matches)
+
+@data.route('/coach-matches')
+def fetch_coach_matches():
+    coach_username = session['username']
+    team_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{coach_username}';")[0][0][0]
+    
+    # Query to get all matches for the coach's team with player information
+    sql_query = f"""
+    SELECT m.match_id, DATE_FORMAT(m.date, '%d-%m-%Y') as match_date, m.time_slot, 
+       h.hall_name, m.table_id, opp_t.team_name as opponent_team_name,
+       CONCAT(a.name, ' ', a.surname) as arbiter_name,
+       CONCAT(yp.name, ' ', yp.surname) as player_name,
+       CONCAT(opp.name, ' ', opp.surname) as opponent_player_name,
+       m.rating
+    FROM Matches m
+    JOIN Halls h ON m.hall_id = h.hall_id
+    JOIN Teams opp_t ON m.team2_id = opp_t.team_id
+    JOIN Arbiters a ON m.arbiter_username = a.username
+    LEFT JOIN MatchAssignments ma ON ma.match_id = m.match_id
+    LEFT JOIN Players yp ON yp.username = ma.white_player
+    LEFT JOIN Players opp ON opp.username = ma.black_player
+    WHERE m.team1_id = {team_id}
+
+    UNION
+
+    SELECT m.match_id, DATE_FORMAT(m.date, '%d-%m-%Y') as match_date, m.time_slot, 
+       h.hall_name, m.table_id, opp_t.team_name as opponent_team_name,
+       CONCAT(a.name, ' ', a.surname) as arbiter_name,
+       CONCAT(yp.name, ' ', yp.surname) as player_name,
+       CONCAT(opp.name, ' ', opp.surname) as opponent_player_name,
+       m.rating
+    FROM Matches m
+    JOIN Halls h ON m.hall_id = h.hall_id
+    JOIN Teams opp_t ON m.team1_id = opp_t.team_id
+    JOIN Arbiters a ON m.arbiter_username = a.username
+    LEFT JOIN MatchAssignments ma ON ma.match_id = m.match_id
+    LEFT JOIN Players yp ON yp.username = ma.black_player
+    LEFT JOIN Players opp ON opp.username = ma.white_player
+    WHERE m.team2_id = {team_id}
+
+    """
+    
+    results = execute_sql_command(sql_query)
+    rows = results[0]
+    columns = ['match_id', 'match_date', 'time_slot', 'hall_name', 'table_id', 'opponent_team_name', 
+               'arbiter_name', 'player_name', 'opponent_player_name', 'rating']
+    
+    # Convert to list of dicts
+    result = [dict(zip(columns, row)) for row in rows]
+    
+    return jsonify(result)
+
+@data.route('/available-players')
+def fetch_available_players():
+    match_id = request.args.get('match_id')
+    coach_username = session['username']
+    team_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{coach_username}';")[0][0][0]
+    
+    # Get match date and time
+    match_info = execute_sql_command(f"SELECT date, time_slot FROM Matches WHERE match_id = {match_id};")
+    match_date = match_info[0][0][0]
+    match_time_slot = match_info[0][0][1]
+    
+    # Query to get players from coach's team who are not already assigned to other matches at same time
+    sql_query = f"""
+    SELECT p.username as player_username, p.name, p.surname, p.elo_rating as rating
+    FROM Players p
+    JOIN PlayerTeams pt ON p.username = pt.username
+    WHERE pt.team_id = {team_id}
+    AND NOT EXISTS (
+    SELECT 1
+    FROM MatchAssignments ma
+    JOIN Matches m ON ma.match_id = m.match_id
+    WHERE m.date = '{match_date}' 
+    AND m.time_slot = {match_time_slot}
+    AND (ma.white_player = p.username OR ma.black_player = p.username)
+    )
+    ORDER BY p.elo_rating DESC;
+    """
+    
+    results = execute_sql_command(sql_query)
+    rows = results[0]
+    columns = ['player_username', 'name', 'surname', 'rating']
+    
+    # Convert to list of dicts
+    result = [dict(zip(columns, row)) for row in rows]
+    
+    return jsonify(result)
 
 
 
@@ -185,7 +282,7 @@ def add_user():
 
         results = execute_sql_command(f"CALL InsertPlayer('{username}', '{password}', '{name}', '{surname}', '{nationality}', '{date_of_birth}', {fide_id}, {elo_rating}, {title_id});")
 
-        # If optional team ID is provided and player insertion didn't fail, insert to PlayerTeams
+        # If optional team ID is provided and player insertion didn'opp fail, insert to PlayerTeams
         if team_id != '' and not isinstance(results, str):
             results = execute_sql_command(f"CALL InsertPlayerTeam('{username}', {team_id});")
             # If PlayerTeams insertion fails, revert player insertion
@@ -251,3 +348,71 @@ def create_match():
 
     results = execute_sql_command(f"CALL InsertMatch({match_id}, '{date}', '{time_slot}', {hall_id}, {table_id}, {team1_id}, {team2_id}, '{arbiter_username}', {rating});")
     return redirect('/dashboard/coach')
+
+@coach.route('/assign-player', methods=['POST'])
+def assign_player():
+    data = request.json
+    match_id = data.get('match_id')
+    player_username = data.get('player_username')
+    coach_username = session['username']
+
+    team_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{coach_username}';")[0][0][0]
+
+    # Get both teams from the match
+    match_check = execute_sql_command(f"SELECT team1_id, team2_id FROM Matches WHERE match_id = {match_id};")
+    if not match_check or not match_check[0]:
+        return jsonify({"success": False, "message": "Match not found."})
+
+    team1_id = match_check[0][0][0]
+    team2_id = match_check[0][0][1]
+
+    if team_id != team1_id and team_id != team2_id:
+        return jsonify({"success": False, "message": "This match does not belong to your team."})
+
+    # Determine player side
+    is_white = team_id == team1_id
+    player_column = "white_player" if is_white else "black_player"
+    player_column_team = "team1_id" if is_white else "team2_id"
+    opponent_column = "black_player" if is_white else "white_player"
+    opponent_column_team = "team2_id" if is_white else "team1_id"
+
+    assignment_check = execute_sql_command(f"SELECT COUNT(*) FROM MatchAssignments WHERE match_id = {match_id};")
+
+    if assignment_check[0][0][0] > 0:
+        try:
+            execute_sql_command(f"UPDATE MatchAssignments SET {player_column} = '{player_username}' WHERE match_id = {match_id};")
+            return jsonify({"success": True})
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)})
+    else:
+        try:
+            execute_sql_command(f"INSERT INTO MatchAssignments(match_id, {player_column}, {opponent_column}, result, {player_column_team}, {opponent_column_team}) VALUES ({match_id}, '{player_username}', NULL, NULL, {team_id}, NULL);")
+            return jsonify({"success": True})
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)})
+
+    
+
+@coach.route('/delete-match/<int:match_id>', methods=['DELETE'])
+def delete_match(match_id):
+    coach_username = session['username']
+    team_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{coach_username}';")[0][0][0]
+    
+    # Check if match belongs to coach's team
+    check_query = f"SELECT COUNT(*) FROM Matches WHERE match_id = {match_id} AND team1_id = {team_id};"
+    is_coach_match = execute_sql_command(check_query)[0][0][0] > 0
+    
+    if not is_coach_match:
+        return jsonify({"success": False, "message": "You don't have permission to delete this match."})
+    
+    try:
+        # Delete associated records from MatchAssignments first (due to foreign key constraints)
+        execute_sql_command(f"DELETE FROM MatchAssignments WHERE match_id = {match_id};")
+        
+        # Then delete the match itself
+        execute_sql_command(f"DELETE FROM Matches WHERE match_id = {match_id};")
+        
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+

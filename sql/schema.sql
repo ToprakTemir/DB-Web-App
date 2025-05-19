@@ -150,8 +150,16 @@ CREATE TABLE MatchAssignments(
     match_id INT PRIMARY KEY,
     white_player VARCHAR(50),
     black_player VARCHAR(50),
+    team1_id INT,
+    team2_id INT,
     result VARCHAR(50),
     FOREIGN KEY (match_id) REFERENCES Matches(match_id)
                                     ON DELETE RESTRICT
+                                    ON UPDATE CASCADE,
+    FOREIGN KEY (team1_id) REFERENCES Teams(team_id)
+                                    ON DELETE SET NULL
+                                    ON UPDATE CASCADE,
+    FOREIGN KEY (team2_id) REFERENCES Teams(team_id)
+                                    ON DELETE SET NULL
                                     ON UPDATE CASCADE
 );
