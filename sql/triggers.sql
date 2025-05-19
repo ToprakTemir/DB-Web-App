@@ -1,29 +1,50 @@
-/*
-EXAMPLE TRIGGERS
+DROP TRIGGER IF EXISTS CheckMatchConstraints;
 
-
--- Drop triggers if they exist
-DROP TRIGGER IF EXISTS before_user_insert;
-DROP TRIGGER IF EXISTS after_user_insert;
-
--- Use custom delimiter to allow compound statements
 DELIMITER //
 
--- Trigger 1: Uppercase username before insert
-CREATE TRIGGER before_user_insert
-BEFORE INSERT ON coaches
+CREATE TRIGGER CheckMatchConstraints
+BEFORE INSERT ON Matches
 FOR EACH ROW
 BEGIN
-    SET NEW.username = UPPER(NEW.username);
-END //
+    DECLARE conflicting_matches INT;
+    DECLARE next_slot CHAR(1);
+    DECLARE prev_slot CHAR(1);
+    DECLARE slot_num INT;
 
--- Trigger 2: Log user insert into audit_log table
-CREATE TRIGGER after_user_insert
-AFTER INSERT ON coaches
-FOR EACH ROW
-BEGIN
-    INSERT INTO titles (title_ID, title_name) VALUES (1, 'example_title');
+    -- Check that team1 != team2
+    IF NEW.team1_id = NEW.team2_id THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'A team cannot play against itself.';
+    END IF;
+
+    -- Safely compute next_slot
+    SET slot_num = CONVERT(NEW.time_slot, UNSIGNED INTEGER);
+    SET next_slot = CONVERT(slot_num + 1, CHAR);
+
+    -- Check for same or next time_slot conflict at same table
+    SELECT COUNT(*) INTO conflicting_matches
+    FROM Matches
+    WHERE date = NEW.date
+      AND hall_id = NEW.hall_id
+      AND table_id = NEW.table_id
+      AND (time_slot = NEW.time_slot OR time_slot = next_slot OR time_slot = prev_slot);
+
+    IF conflicting_matches > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Conflict: Table already in use at this or next slot.';
+    END IF;
+
+    -- Check for arbiter conflict at same or next time slot
+    SELECT COUNT(*) INTO conflicting_matches
+    FROM Matches
+    WHERE date = NEW.date
+      AND arbiter_username = NEW.arbiter_username
+      AND (time_slot = NEW.time_slot OR time_slot = next_slot OR time_slot = prev_slot);
+
+    IF conflicting_matches > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Conflict: Arbiter already assigned at this or next time slot.';
+    END IF;
 END //
 
 DELIMITER ;
-*/

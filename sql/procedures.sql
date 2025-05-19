@@ -5,6 +5,7 @@ DROP PROCEDURE IF EXISTS InsertPlayerTeam;
 DROP PROCEDURE IF EXISTS InsertCoachCertification;
 DROP PROCEDURE IF EXISTS InsertArbiter;
 DROP PROCEDURE IF EXISTS InsertArbiterCertification;
+DROP PROCEDURE IF EXISTS InsertMatch;
 
 DELIMITER //
 
@@ -186,6 +187,44 @@ BEGIN
     ) VALUES (
         in_username,
         in_certification
+    );
+END //
+
+
+
+CREATE PROCEDURE InsertMatch(
+    IN in_match_id INT,
+    IN in_date VARCHAR(50),
+    IN in_time_slot ENUM('1', '2', '3', '4'),
+    IN in_hall_id INT,
+    IN in_table_id INT,
+    IN in_team1_id INT,
+    IN in_team2_id INT,
+    IN in_arbiter_username VARCHAR(50),
+    IN in_rating FLOAT
+)
+BEGIN
+    INSERT INTO Matches (
+        match_id, 
+        date, 
+        time_slot, 
+        hall_id, 
+        table_id,
+        team1_id, 
+        team2_id, 
+        arbiter_username, 
+        rating
+    )
+    VALUES (
+        in_match_id, 
+        (STR_TO_DATE(in_date, '%d-%m-%Y')), 
+        in_time_slot, 
+        in_hall_id, 
+        in_table_id,
+        in_team1_id, 
+        in_team2_id, 
+        in_arbiter_username, 
+        in_rating
     );
 END //
 

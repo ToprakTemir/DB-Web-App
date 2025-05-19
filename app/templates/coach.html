@@ -179,7 +179,7 @@
         <!-- Create Match Tab -->
         <div id="createMatch" class="tabcontent active-tab">
             <h2>Create New Match</h2>
-            <form id="create-match-form" action="/coach/create-match" method="POST">
+            <form id="create-match-form" action="/dashboard/coach/create-match" method="POST">
                 <div class="form-group">
                     <label for="match-date">Match Date (DD-MM-YYYY)</label>
                     <input type="text" id="match-date" name="match_date" placeholder="DD-MM-YYYY" required>
@@ -193,10 +193,6 @@
                         <option value="2">Time Slot 2 (10:00-11:00)</option>
                         <option value="3">Time Slot 3 (11:00-12:00)</option>
                         <option value="4">Time Slot 4 (12:00-13:00)</option>
-                        <option value="5">Time Slot 5 (13:00-14:00)</option>
-                        <option value="6">Time Slot 6 (14:00-15:00)</option>
-                        <option value="7">Time Slot 7 (15:00-16:00)</option>
-                        <option value="8">Time Slot 8 (16:00-17:00)</option>
                     </select>
                     <small>Note: Each match takes 2 consecutive time slots.</small>
                 </div>
@@ -226,8 +222,8 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="arbiter-id">Arbiter</label>
-                    <select id="arbiter-id" name="arbiter_id" required>
+                    <label for="arbiter-name">Arbiter</label>
+                    <select id="arbiter-name" name="arbiter_name" required>
                         <option value="">Select Arbiter</option>
                         <!-- Arbiter options will be loaded here -->
                     </select>
@@ -275,7 +271,7 @@
             <div id="assign-modal" class="modal">
                 <div class="modal-content">
                     <h3>Assign Player to Match</h3>
-                    <form id="assign-player-form" action="/coach/assign-player" method="POST">
+                    <form id="assign-player-form" action="/dashboard/coach/assign-player" method="POST">
                         <input type="hidden" id="match-id" name="match_id">
                         
                         <div class="form-group">
@@ -380,47 +376,99 @@
         
         // Load available halls for the create match form
         function loadHalls() {
-            // This would be an AJAX call to fetch halls from the server
-            // For now, we'll just show placeholders
-            const hallSelect = document.getElementById('hall-id');
-            hallSelect.innerHTML = '<option value="">Select a Hall</option>' +
-                '<option value="1">Hall A (USA)</option>' +
-                '<option value="2">Hall B (Germany)</option>' +
-                '<option value="3">Hall C (France)</option>';
+            fetch('/data/halls')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                 })
+                .then(data => {
+                    const hallSelect = document.getElementById('hall-id');
+                    hallSelect.innerHTML = '<option value="">Select a Hall</option>';
+                    data.forEach(hall => {
+                        const option = document.createElement('option');
+                        option.value = hall.hall_id;
+                        option.textContent = hall.hall_name;
+                        hallSelect.appendChild(option);
+                    });
+                 })
+                .catch(error => {
+                    console.error('Error loading halls:', error);
+                });
         }
         
         // Load tables based on selected hall
-        function loadTables(hallId) {
-            // This would be an AJAX call to fetch tables for the selected hall
-            const tableSelect = document.getElementById('table-id');
-            tableSelect.innerHTML = '<option value="">Select a Table</option>';
-            
-            if (hallId) {
-                // Add some placeholder tables
-                for (let i = 1; i <= 5; i++) {
-                    tableSelect.innerHTML += `<option value="${i}">Table ${i}</option>`;
-                }
-            }
+        function loadTables() {
+            const hall_id = document.getElementById('hall-id').value;
+
+            const url = `/data/tables?hall_id=${encodeURIComponent(hall_id)}`;
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                 })
+                .then(data => {
+                    const tableSelect = document.getElementById('table-id');
+                    tableSelect.innerHTML = '<option value="">Select a Table</option>';
+                    data.forEach(table => {
+                        const option = document.createElement('option');
+                        option.value = table.table_id;
+                        option.textContent = table.table_id;
+                        tableSelect.appendChild(option);
+                    });
+                 })
+                .catch(error => {
+                    console.error('Error loading tables:', error);
+                });
         }
         
         // Load opponent teams
         function loadOpponentTeams() {
-            // This would be an AJAX call to fetch teams
-            const teamSelect = document.getElementById('opponent-team');
-            teamSelect.innerHTML = '<option value="">Select Opponent Team</option>' +
-                '<option value="1">Team Chess Masters</option>' +
-                '<option value="2">Royal Knights</option>' +
-                '<option value="3">Strategic Minds</option>';
+            fetch('/data/opponent-teams')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                 })
+                .then(data => {
+                    const teamSelect = document.getElementById('opponent-team');
+                    teamSelect.innerHTML = '<option value="">Select Opponent Team</option>';
+                    data.forEach(team => {
+                        const option = document.createElement('option');
+                        option.value = team.team_id;
+                        option.textContent = team.team_name;
+                        teamSelect.appendChild(option);
+                    });
+                 })
+                .catch(error => {
+                    console.error('Error loading teams:', error);
+                });
         }
         
-        // Load available arbiters for the selected date and time
+        // Load arbiters
         function loadArbiters() {
-            // This would be an AJAX call to fetch available arbiters
-            const arbiterSelect = document.getElementById('arbiter-id');
-            arbiterSelect.innerHTML = '<option value="">Select an Arbiter</option>' +
-                '<option value="1">John Smith</option>' +
-                '<option value="2">Sarah Johnson</option>' +
-                '<option value="3">Michael Brown</option>';
+            const matchDate = document.getElementById('match-date').value;
+            const timeSlot = document.getElementById('time-slot').value;
+
+            const url = `/data/available-arbiters?date=${encodeURIComponent(matchDate)}&time_slot=${encodeURIComponent(timeSlot)}`;
+
+            fetch(url)
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                 })
+                .then(data => {
+                    const arbiterSelect = document.getElementById('arbiter-name');
+                    arbiterSelect.innerHTML = '<option value="">Select an Arbiter</option>';
+                    data.forEach(arbiter => {
+                        const option = document.createElement('option');
+                        option.value = arbiter.name;
+                        option.textContent = arbiter.name + ' ' + arbiter.surname;
+                        arbiterSelect.appendChild(option);
+                    });
+                 })
+                .catch(error => {
+                    console.error('Error loading arbiters:', error);
+                });
         }
         
         // Show a modal by id
@@ -464,7 +512,7 @@
             
             // Add event listener for hall selection to load tables
             document.getElementById('hall-id').addEventListener('change', function() {
-                loadTables(this.value);
+                loadTables();
             });
             
             // Add event listeners for date and time selection to load available arbiters

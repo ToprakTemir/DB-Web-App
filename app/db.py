@@ -34,7 +34,7 @@ def execute_sql_file(filename):
     db.commit()
     db.close()
 
-    # Returns a 2D array with results[query_number][row_number]
+    # Returns a 3D array with results[query_number][row_number][column_number]
     return results
         
 def execute_sql_command(command):

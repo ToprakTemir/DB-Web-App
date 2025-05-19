@@ -4,8 +4,10 @@ from flask import Blueprint, render_template, redirect, request, session, jsonif
 from .db import execute_sql_command
 
 main = Blueprint('main', __name__)
+data = Blueprint('data', __name__, url_prefix='/data')
 dashboard = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 db_manager = Blueprint('db_manager', __name__, url_prefix='/dashboard/db-manager')
+coach = Blueprint('coach', __name__, url_prefix='/dashboard/coach')
 
 
 # ----- MAIN ROUTES (Prefix: None) -----
@@ -17,10 +19,14 @@ def home():
 @main.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        results = execute_sql_command(f"CALL CheckUserCredentials('{request.form['username']}', '{request.form['password']}', @match_found, @user_table); SELECT @match_found, @user_table;")
-        query_result = results[0]
+        username = request.form['username']
+        password = request.form['password']
+
+        results = execute_sql_command(f"CALL CheckUserCredentials('{username}', '{password}', @match_found, @user_table); SELECT @match_found, @user_table;")
+        query_result = results[1]
         found, table = query_result[0]
         if found:
+            session['username'] = username
             if table == 'DBManagers':
                 session['roles'] = ['db-manager']
                 return redirect('/dashboard/db-manager')
@@ -43,10 +49,68 @@ def logout():
     return redirect('/login')
 
 
+
+
+
+# ----- DATA ROUTES (Prefix: /data) -----
+
+@data.route('/halls')
+def fetch_halls():
+    results = execute_sql_command("SELECT * FROM Halls;")
+    rows = results[0]
+    columns = ['hall_id', 'hall_name', 'country', 'capacity']
+
+    # Convert to list of dicts
+    result = [dict(zip(columns, row)) for row in rows]
+
+    return jsonify(result)
+
+@data.route('/available-arbiters')
+def fetch_available_arbiters():
+    date = request.args.get('date')
+    time_slot = request.args.get('time_slot')
+
+    results = execute_sql_command(f"SELECT name, surname FROM Arbiters WHERE username NOT IN (SELECT arbiter_username FROM Matches WHERE date = (STR_TO_DATE({date}, '%d-%m-%Y')) AND time_slot = {time_slot});")
+    rows = results[0]
+    columns = ['name', 'surname']
+
+    # Convert to list of dicts
+    result = [dict(zip(columns, row)) for row in rows]
+
+    return jsonify(result)
+
+@data.route('/opponent-teams')
+def fetch_opponent_teams():
+    results = execute_sql_command(f"SELECT * FROM Teams WHERE team_id != (SELECT team_id FROM Coaches WHERE username = '{session['username']}');")
+    rows = results[0]
+    columns = ['team_id', 'team_name', 'sponsor_id']
+
+    # Convert to list of dicts
+    result = [dict(zip(columns, row)) for row in rows]
+
+    return jsonify(result)
+
+@data.route('/tables')
+def tables():
+    hall_id = request.args.get('hall_id')
+
+    results = execute_sql_command(f"SELECT table_id FROM Tables WHERE hall_id = {hall_id};")
+    rows = results[0]
+    columns = ['table_id']
+
+    # Convert to list of dicts
+    result = [dict(zip(columns, row)) for row in rows]
+
+    return jsonify(result)
+
+
+
+
+
 # ----- DASHBOARD ROUTES (Prefix: /dashboard) -----
 
 @dashboard.route('/player')
-def player_view():
+def player_dashboard():
     try:
         if session['roles'] == ['player']:
             return render_template('player.html')
@@ -58,7 +122,7 @@ def player_view():
     return redirect('/login')
     
 @dashboard.route('/coach')
-def coach_view():
+def coach_dashboard():
     try:
         if session['roles'] == ['coach']:
             return render_template('coach.html')
@@ -70,7 +134,7 @@ def coach_view():
     return redirect('/login')
 
 @dashboard.route('/db-manager')
-def db_manager_view():
+def db_manager_dashboard():
     try:
         if session['roles'] == ['db-manager']:
             return render_template('db-manager.html')
@@ -82,7 +146,7 @@ def db_manager_view():
     return redirect('/login')
 
 @dashboard.route('/arbiter')
-def arbiter_view():
+def arbiter_dashboard():
     try:
         if session['roles'] == ['arbiter']:
             return render_template('arbiter.html')
@@ -92,6 +156,9 @@ def arbiter_view():
     except:
         pass
     return redirect('/login')
+
+
+
 
 
 # ----- DB MANAGER ROUTES (Prefix: /dashboard/db-manager) -----
@@ -153,20 +220,34 @@ def add_user():
 
     return redirect('/dashboard/db-manager')
 
-@db_manager.route('/fetch-halls')
-def fetch_halls():
-    results = execute_sql_command("SELECT * FROM Halls;")
-    rows = results[0]
-    columns = ['hall_id', 'hall_name', 'country', 'capacity']
-
-    # Convert to list of dicts
-    result = [dict(zip(columns, row)) for row in rows]
-
-    return jsonify(result)
-
 @db_manager.route('/rename-hall', methods=['POST'])
 def rename_hall():
     hall_id = request.form['hall_id']
     new_name = request.form['new_hall_name']
     results = execute_sql_command(f"UPDATE Halls SET hall_name = '{new_name}' WHERE hall_id = '{hall_id}';")
     return redirect('/dashboard/db-manager')
+
+
+
+
+
+# ----- COACH ROUTES (Prefix: /dashboard/coach) -----
+
+@coach.route('/create-match', methods=['POST'])
+def create_match():
+    prev_id = execute_sql_command(f"SELECT MAX(match_id) FROM matches;")[0][0][0]
+    if isinstance(prev_id, int):
+        match_id = prev_id + 1
+    else: 
+        match_id = 1
+    date = request.form['match_date']
+    time_slot = request.form['time_slot']
+    hall_id = request.form['hall_id']
+    table_id = request.form['table_id']
+    team1_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{session['username']}';")[0][0][0]
+    team2_id = request.form['opponent_team_id']
+    arbiter_username = request.form['arbiter_name']
+    rating = 'NULL'
+
+    results = execute_sql_command(f"CALL InsertMatch({match_id}, '{date}', '{time_slot}', {hall_id}, {table_id}, {team1_id}, {team2_id}, '{arbiter_username}', {rating});")
+    return redirect('/dashboard/coach')

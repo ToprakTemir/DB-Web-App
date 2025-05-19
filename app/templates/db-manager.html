@@ -308,7 +308,7 @@
         
         // Load halls for the rename hall form (would be implemented with backend)
         function loadHalls() {
-            fetch('/dashboard/db-manager/fetch-halls')
+            fetch('/data/halls')
                 .then(response => {
                     if (!response.ok) throw new Error('Network response was not ok');
                     return response.json();
