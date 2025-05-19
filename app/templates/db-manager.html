@@ -143,7 +143,7 @@
         <!-- Add New User Tab -->
         <div id="addUser" class="tabcontent active-tab">
             <h2>Add New User</h2>
-            <form id="add-user-form" action="/database-manager/add-user" method="POST">
+            <form id="add-user-form" action="/dashboard/db-manager/add-user" method="POST">
                 <div class="form-group">
                     <label for="user-type">User Type</label>
                     <select id="user-type" name="user_type" required>
@@ -155,59 +155,63 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="username">Username</label>
+                    <label for="username">Username*</label>
                     <input type="text" id="username" name="username" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="password">Password</label>
+                    <label for="password">Password*</label>
                     <input type="password" id="password" name="password" required>
                     <small>Password must be at least 8 characters, include uppercase, lowercase, digit, and special character.</small>
                 </div>
                 
                 <div class="form-group">
-                    <label for="name">Name</label>
+                    <label for="name">Name*</label>
                     <input type="text" id="name" name="name" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="surname">Surname</label>
+                    <label for="surname">Surname*</label>
                     <input type="text" id="surname" name="surname" required>
                 </div>
                 
                 <div class="form-group">
-                    <label for="nationality">Nationality</label>
+                    <label for="nationality">Nationality*</label>
                     <input type="text" id="nationality" name="nationality" required>
                 </div>
                 
                 <!-- Player-specific fields (initially hidden) -->
                 <div id="player-fields" style="display: none;">
                     <div class="form-group">
-                        <label for="date-of-birth">Date of Birth (DD-MM-YYYY)</label>
-                        <input type="text" id="date-of-birth" name="date_of_birth" placeholder="DD-MM-YYYY">
+                        <label for="date-of-birth">Date of Birth* (DD-MM-YYYY)</label>
+                        <input type="text" id="date-of-birth" name="date_of_birth" placeholder="DD-MM-YYYY" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="fide-id">FIDE ID</label>
-                        <input type="text" id="fide-id" name="fide_id">
+                        <label for="fide-id">FIDE ID*</label>
+                        <input type="text" id="fide-id" name="fide_id" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="elo-rating">ELO Rating</label>
-                        <input type="number" id="elo-rating" name="elo_rating">
+                        <label for="elo-rating">ELO Rating*</label>
+                        <input type="number" id="elo-rating" name="elo_rating" required>
                     </div>
                     
                     <div class="form-group">
-                        <label for="title-id">Title ID</label>
-                        <input type="text" id="title-id" name="title_id">
+                        <label for="title-id">Title ID*</label>
+                        <input type="text" id="title-id" name="title_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="team-id-for-player">Team ID</label>
+                        <input type="text" id="team-id-for-player" name="team_id">
                     </div>
                 </div>
                 
                 <!-- Arbiter-specific fields (initially hidden) -->
                 <div id="arbiter-fields" style="display: none;">
                     <div class="form-group">
-                        <label for="experience-level">Experience Level</label>
-                        <input type="number" id="experience-level" name="experience_level" min="1" max="10">
+                        <label for="experience-level">Experience Level*</label>
+                        <input type="text" id="experience-level" name="experience_level" required>
                     </div>
                     
                     <div class="form-group">
@@ -218,6 +222,18 @@
                 
                 <!-- Coach-specific fields (initially hidden) -->
                 <div id="coach-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="team-id-for-coach">Team ID*</label>
+                        <input type="text" id="team-id-for-coach" name="team_id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contract-start">Contract Start Date* (DD-MM-YYYY)</label>
+                        <input type="text" id="contract-start" name="contract_start" placeholder="DD-MM-YYYY" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contract-end">Contract End Date* (DD-MM-YYYY)</label>
+                        <input type="text" id="contract-end" name="contract_end" placeholder="DD-MM-YYYY" required>
+                    </div>
                     <div class="form-group">
                         <label for="coach-certification">Certification</label>
                         <input type="text" id="coach-certification" name="coach_certification">
@@ -231,7 +247,7 @@
         <!-- Rename Hall Tab -->
         <div id="renameHall" class="tabcontent">
             <h2>Rename Hall</h2>
-            <form id="rename-hall-form" action="/database-manager/rename-hall" method="POST">
+            <form id="rename-hall-form" action="/dashboard/db-manager/rename-hall" method="POST">
                 <div class="form-group">
                     <label for="hall-id">Select Hall</label>
                     <select id="hall-id" name="hall_id" required>
@@ -252,12 +268,25 @@
 
     <script>
         // Show/hide fields based on user type selection
-        document.getElementById('user-type').addEventListener('change', function() {
+        document.getElementById('user-type').addEventListener('change', function () {
             const userType = this.value;
-            document.getElementById('player-fields').style.display = userType === 'player' ? 'block' : 'none';
-            document.getElementById('arbiter-fields').style.display = userType === 'arbiter' ? 'block' : 'none';
-            document.getElementById('coach-fields').style.display = userType === 'coach' ? 'block' : 'none';
-        });
+
+            // Utility to show/hide and enable/disable groups
+            function toggleGroup(id, show) {
+                const group = document.getElementById(id);
+                group.style.display = show ? 'block' : 'none';
+
+            // Enable or disable all inputs in the group
+            const inputs = group.querySelectorAll('input, select');
+            inputs.forEach(input => {
+            input.disabled = !show;
+            });
+        }
+
+        toggleGroup('player-fields', userType === 'player');
+        toggleGroup('arbiter-fields', userType === 'arbiter');
+        toggleGroup('coach-fields', userType === 'coach');
+    });
         
         // Tab switching function
         function openTab(evt, tabName) {

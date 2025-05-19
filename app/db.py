@@ -44,6 +44,7 @@ def execute_sql_command(command):
         cur.execute(command)
     except Exception as e:
         print("Query execution failed:", e)
+        return e
 
     results = []
 

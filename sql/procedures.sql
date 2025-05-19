@@ -1,57 +1,10 @@
-/*
-EXAMPLE PROCEDURES
-
--- Drop procedures if they already exist
-DROP PROCEDURE IF EXISTS get_all_coaches;
-DROP PROCEDURE IF EXISTS insert_coach;
-DROP PROCEDURE IF EXISTS delete_coach_by_username;
-DROP PROCEDURE IF EXISTS update_coach_nationality;
-
-DELIMITER //
-
--- Procedure 1: Get all coaches
-CREATE PROCEDURE get_all_coaches()
-BEGIN
-    SELECT * FROM coaches;
-END //
-
--- Procedure 2: Insert a new coach
-CREATE PROCEDURE insert_coach(
-    IN p_username VARCHAR(255),
-    IN p_password VARCHAR(255),
-    IN p_name VARCHAR(255),
-    IN p_surname VARCHAR(255),
-    IN p_nationality VARCHAR(255),
-    IN p_date_of_birth DATE
-)
-BEGIN
-    INSERT INTO coaches (username, password, name, surname, nationality, date_of_birth)
-    VALUES (p_username, p_password, p_name, p_surname, p_nationality, p_date_of_birth);
-END //
-
--- Procedure 3: Delete a coach by username
-CREATE PROCEDURE delete_coach_by_username(
-    IN p_username VARCHAR(255)
-)
-BEGIN
-    DELETE FROM coaches WHERE username = p_username;
-END //
-
--- Procedure 4: Update nationality by username
-CREATE PROCEDURE update_coach_nationality(
-    IN p_username VARCHAR(255),
-    IN p_new_nationality VARCHAR(255)
-)
-BEGIN
-    UPDATE coaches
-    SET nationality = p_new_nationality
-    WHERE username = p_username;
-END //
-
-DELIMITER ;
-*/
-
 DROP PROCEDURE IF EXISTS CheckUserCredentials;
+DROP PROCEDURE IF EXISTS InsertPlayer;
+DROP PROCEDURE IF EXISTS InsertCoach;
+DROP PROCEDURE IF EXISTS InsertPlayerTeam;
+DROP PROCEDURE IF EXISTS InsertCoachCertification;
+DROP PROCEDURE IF EXISTS InsertArbiter;
+DROP PROCEDURE IF EXISTS InsertArbiterCertification;
 
 DELIMITER //
 
@@ -82,6 +35,158 @@ BEGIN
         SET matched = TRUE;
         SET matched_table = 'Arbiters';
     END IF;
+END //
+
+
+
+
+
+CREATE PROCEDURE InsertPlayer(
+    IN in_username VARCHAR(50),
+    IN in_password VARCHAR(50),
+    IN in_name VARCHAR(50),
+    IN in_surname VARCHAR(50),
+    IN in_nationality VARCHAR(50),
+    IN in_date_of_birth VARCHAR(50),
+    IN in_fide_ID INT,
+    IN in_elo_rating INT,
+    IN in_title_id INT
+)
+BEGIN
+    INSERT INTO Players (
+        username,
+        password,
+        name,
+        surname,
+        nationality,
+        date_of_birth,
+        fide_ID,
+        elo_rating,
+        title_id
+    ) VALUES (
+        in_username,
+        in_password,
+        in_name,
+        in_surname,
+        in_nationality,
+        (STR_TO_DATE(in_date_of_birth, '%d-%m-%Y')),
+        in_fide_ID,
+        in_elo_rating,
+        in_title_id
+    );
+END //
+
+
+
+
+CREATE PROCEDURE InsertCoach(
+    IN in_username VARCHAR(50),
+    IN in_password VARCHAR(50),
+    IN in_name VARCHAR(50),
+    IN in_surname VARCHAR(50),
+    IN in_nationality VARCHAR(50),
+    IN in_team_id INT,
+    IN in_contract_start VARCHAR(50),
+    IN in_contract_finish VARCHAR(50)
+)
+BEGIN
+    INSERT INTO Coaches (
+        username,
+        password,
+        name,
+        surname,
+        nationality,
+        team_id,
+        contract_start,
+        contract_finish
+    ) VALUES (
+        in_username,
+        in_password,
+        in_name,
+        in_surname,
+        in_nationality,
+        in_team_id,
+        (STR_TO_DATE(in_contract_start, '%d-%m-%Y')),
+        (STR_TO_DATE(in_contract_finish, '%d-%m-%Y'))
+    );
+END //
+
+
+
+
+CREATE PROCEDURE InsertPlayerTeam(
+    IN in_username VARCHAR(50),
+    IN in_team_id INT
+)
+BEGIN
+    INSERT INTO PlayerTeams (
+        username,
+        team_id
+    ) VALUES (
+        in_username,
+        in_team_id
+    );
+END //
+
+
+
+
+CREATE PROCEDURE InsertCoachCertification(
+    IN in_coach_username VARCHAR(50),
+    IN in_certification VARCHAR(50)
+)
+BEGIN
+    INSERT INTO CoachCertifications (
+        coach_username,
+        certification
+    ) VALUES (
+        in_coach_username,
+        in_certification
+    );
+END //
+
+
+
+CREATE PROCEDURE InsertArbiter(
+    IN in_username VARCHAR(50),
+    IN in_password VARCHAR(50),
+    IN in_name VARCHAR(50),
+    IN in_surname VARCHAR(50),
+    IN in_nationality VARCHAR(50),
+    IN in_experience_level VARCHAR(50)
+)
+BEGIN
+    INSERT INTO Arbiters (
+        username,
+        password,
+        name,
+        surname,
+        nationality,
+        experience_level
+    ) VALUES (
+        in_username,
+        in_password,
+        in_name,
+        in_surname,
+        in_nationality,
+        in_experience_level
+    );
+END //
+
+
+
+CREATE PROCEDURE InsertArbiterCertification(
+    IN in_username VARCHAR(50),
+    IN in_certification VARCHAR(50)
+)
+BEGIN
+    INSERT INTO ArbiterCertifications (
+        username,
+        certification
+    ) VALUES (
+        in_username,
+        in_certification
+    );
 END //
 
 DELIMITER ;
