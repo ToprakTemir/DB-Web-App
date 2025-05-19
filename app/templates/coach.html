@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChessDB - Coach Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logout {
+            background-color: #f44336;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error, .success {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 3px;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            margin-bottom: 15px;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            color: #333;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #ccc;
+        }
+        .tabcontent {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+        .active-tab {
+            display: block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .action-btn {
+            margin-right: 5px;
+        }
+        .delete-btn {
+            background-color: #f44336;
+        }
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+        .assign-btn {
+            background-color: #2196F3;
+        }
+        .assign-btn:hover {
+            background-color: #0b7dda;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Coach Dashboard</h1>
+            <button class="logout" onclick="window.location.href='/logout'">Logout</button>
+        </div>
+        
+        <div id="message-container">
+            <!-- Success or error messages will be displayed here -->
+        </div>
+        
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'createMatch')">Create Match</button>
+            <button class="tablinks" onclick="openTab(event, 'assignPlayer')">Assign Players</button>
+            <button class="tablinks" onclick="openTab(event, 'manageMatches')">Manage Matches</button>
+            <button class="tablinks" onclick="openTab(event, 'viewHalls')">View Halls</button>
+        </div>
+        
+        <!-- Create Match Tab -->
+        <div id="createMatch" class="tabcontent active-tab">
+            <h2>Create New Match</h2>
+            <form id="create-match-form" action="/coach/create-match" method="POST">
+                <div class="form-group">
+                    <label for="match-date">Match Date (DD-MM-YYYY)</label>
+                    <input type="text" id="match-date" name="match_date" placeholder="DD-MM-YYYY" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="time-slot">Starting Time Slot</label>
+                    <select id="time-slot" name="time_slot" required>
+                        <option value="">Select Time Slot</option>
+                        <option value="1">Time Slot 1 (09:00-10:00)</option>
+                        <option value="2">Time Slot 2 (10:00-11:00)</option>
+                        <option value="3">Time Slot 3 (11:00-12:00)</option>
+                        <option value="4">Time Slot 4 (12:00-13:00)</option>
+                        <option value="5">Time Slot 5 (13:00-14:00)</option>
+                        <option value="6">Time Slot 6 (14:00-15:00)</option>
+                        <option value="7">Time Slot 7 (15:00-16:00)</option>
+                        <option value="8">Time Slot 8 (16:00-17:00)</option>
+                    </select>
+                    <small>Note: Each match takes 2 consecutive time slots.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="hall-id">Hall</label>
+                    <select id="hall-id" name="hall_id" required>
+                        <option value="">Select Hall</option>
+                        <!-- Hall options will be loaded here -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="table-id">Table</label>
+                    <select id="table-id" name="table_id" required>
+                        <option value="">Select Table</option>
+                        <!-- Table options will be loaded here based on hall selection -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="opponent-team">Opponent Team</label>
+                    <select id="opponent-team" name="opponent_team_id" required>
+                        <option value="">Select Opponent Team</option>
+                        <!-- Team options will be loaded here -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="arbiter-id">Arbiter</label>
+                    <select id="arbiter-id" name="arbiter_id" required>
+                        <option value="">Select Arbiter</option>
+                        <!-- Arbiter options will be loaded here -->
+                    </select>
+                </div>
+                
+                <button type="submit">Create Match</button>
+            </form>
+        </div>
+        
+        <!-- Assign Players Tab -->
+        <div id="assignPlayer" class="tabcontent">
+            <h2>Assign Players to Matches</h2>
+            <div id="unassigned-matches">
+                <h3>Upcoming Matches Needing Player Assignment</h3>
+                <table id="unassigned-matches-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Hall</th>
+                            <th>Table</th>
+                            <th>Opponent Team</th>
+                            <th>Arbiter</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rows will be loaded dynamically -->
+                        <tr>
+                            <td>01-06-2025</td>
+                            <td>Time Slot 3-4</td>
+                            <td>Hall A</td>
+                            <td>Table 5</td>
+                            <td>Team Chess Masters</td>
+                            <td>John Smith</td>
+                            <td>
+                                <button class="assign-btn" onclick="showAssignPlayerModal(1)">Assign Player</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Player Assignment Modal -->
+            <div id="assign-modal" class="modal">
+                <div class="modal-content">
+                    <h3>Assign Player to Match</h3>
+                    <form id="assign-player-form" action="/coach/assign-player" method="POST">
+                        <input type="hidden" id="match-id" name="match_id">
+                        
+                        <div class="form-group">
+                            <label for="player-id">Select Player</label>
+                            <select id="player-id" name="player_id" required>
+                                <option value="">Select Player from Your Team</option>
+                                <!-- Player options will be loaded here -->
+                            </select>
+                        </div>
+                        
+                        <button type="submit">Assign Player</button>
+                        <button type="button" onclick="hideModal('assign-modal')">Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Manage Matches Tab -->
+        <div id="manageMatches" class="tabcontent">
+            <h2>Manage Your Matches</h2>
+            <table id="manage-matches-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Hall</th>
+                        <th>Table</th>
+                        <th>Opponent Team</th>
+                        <th>Your Player</th>
+                        <th>Opponent Player</th>
+                        <th>Arbiter</th>
+                        <th>Rating</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be loaded dynamically -->
+                    <tr>
+                        <td>01-06-2025</td>
+                        <td>Time Slot 3-4</td>
+                        <td>Hall A</td>
+                        <td>Table 5</td>
+                        <td>Team Chess Masters</td>
+                        <td>Alex Johnson</td>
+                        <td>Mike Williams</td>
+                        <td>John Smith</td>
+                        <td>Not rated</td>
+                        <td>
+                            <button class="delete-btn" onclick="confirmDeleteMatch(1)">Delete</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- View Halls Tab -->
+        <div id="viewHalls" class="tabcontent">
+            <h2>Available Halls</h2>
+            <table id="halls-table">
+                <thead>
+                    <tr>
+                        <th>Hall Name</th>
+                        <th>Country</th>
+                        <th>Total Tables</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be loaded dynamically -->
+                    <tr>
+                        <td>Hall A</td>
+                        <td>USA</td>
+                        <td>10</td>
+                    </tr>
+                    <tr>
+                        <td>Hall B</td>
+                        <td>Germany</td>
+                        <td>8</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching function
+        function openTab(evt, tabName) {
+            const tabcontent = document.getElementsByClassName("tabcontent");
+            for (let i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+                tabcontent[i].classList.remove("active-tab");
+            }
+            
+            const tablinks = document.getElementsByClassName("tablinks");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            
+            document.getElementById(tabName).style.display = "block";
+            document.getElementById(tabName).classList.add("active-tab");
+            evt.currentTarget.className += " active";
+        }
+        
+        // Load available halls for the create match form
+        function loadHalls() {
+            // This would be an AJAX call to fetch halls from the server
+            // For now, we'll just show placeholders
+            const hallSelect = document.getElementById('hall-id');
+            hallSelect.innerHTML = '<option value="">Select a Hall</option>' +
+                '<option value="1">Hall A (USA)</option>' +
+                '<option value="2">Hall B (Germany)</option>' +
+                '<option value="3">Hall C (France)</option>';
+        }
+        
+        // Load tables based on selected hall
+        function loadTables(hallId) {
+            // This would be an AJAX call to fetch tables for the selected hall
+            const tableSelect = document.getElementById('table-id');
+            tableSelect.innerHTML = '<option value="">Select a Table</option>';
+            
+            if (hallId) {
+                // Add some placeholder tables
+                for (let i = 1; i <= 5; i++) {
+                    tableSelect.innerHTML += `<option value="${i}">Table ${i}</option>`;
+                }
+            }
+        }
+        
+        // Load opponent teams
+        function loadOpponentTeams() {
+            // This would be an AJAX call to fetch teams
+            const teamSelect = document.getElementById('opponent-team');
+            teamSelect.innerHTML = '<option value="">Select Opponent Team</option>' +
+                '<option value="1">Team Chess Masters</option>' +
+                '<option value="2">Royal Knights</option>' +
+                '<option value="3">Strategic Minds</option>';
+        }
+        
+        // Load available arbiters for the selected date and time
+        function loadArbiters() {
+            // This would be an AJAX call to fetch available arbiters
+            const arbiterSelect = document.getElementById('arbiter-id');
+            arbiterSelect.innerHTML = '<option value="">Select an Arbiter</option>' +
+                '<option value="1">John Smith</option>' +
+                '<option value="2">Sarah Johnson</option>' +
+                '<option value="3">Michael Brown</option>';
+        }
+        
+        // Show a modal by id
+        function showModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+        
+        // Hide a modal by id
+        function hideModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+        
+        // Show the assign player modal
+        function showAssignPlayerModal(matchId) {
+            document.getElementById('match-id').value = matchId;
+            showModal('assign-modal');
+            
+            // Load players from your team
+            const playerSelect = document.getElementById('player-id');
+            playerSelect.innerHTML = '<option value="">Select Player from Your Team</option>' +
+                '<option value="1">Alex Johnson</option>' +
+                '<option value="2">Robert Davis</option>' +
+                '<option value="3">Emma Wilson</option>';
+        }
+        
+        // Confirm before deleting a match
+        function confirmDeleteMatch(matchId) {
+            if (confirm('Are you sure you want to delete this match? This action cannot be undone.')) {
+                // Send request to delete the match
+                // This would be an AJAX call to the server
+                alert('Match deleted successfully!');
+                // Then remove the row from the table or refresh the table
+            }
+        }
+        
+        // Set up event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load initial data
+            loadHalls();
+            loadOpponentTeams();
+            
+            // Add event listener for hall selection to load tables
+            document.getElementById('hall-id').addEventListener('change', function() {
+                loadTables(this.value);
+            });
+            
+            // Add event listeners for date and time selection to load available arbiters
+            document.getElementById('match-date').addEventListener('change', updateAvailableArbiters);
+            document.getElementById('time-slot').addEventListener('change', updateAvailableArbiters);
+        });
+        
+        function updateAvailableArbiters() {
+            const date = document.getElementById('match-date').value;
+            const timeSlot = document.getElementById('time-slot').value;
+            
+            if (date && timeSlot) {
+                loadArbiters();
+            }
+        }
+    </script>
+</body>
+</html>

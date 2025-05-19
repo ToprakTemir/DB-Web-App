@@ -1,5 +1,6 @@
 import mysql.connector
 from mysql.connector import Error
+import sys
 
 def get_db_connection():
     return mysql.connector.connect(
@@ -17,8 +18,11 @@ def execute_sql_file(filename):
     with open(filename, 'r') as f:
         command = f.read()
 
-    # Execute a statement; it can be single or multi.
-    cur.execute(command)
+    try:
+        # Execute a statement; it can be single or multi.
+        cur.execute(command)
+    except Exception as e:
+        print("Query execution failed:", e)
 
     results = []
 

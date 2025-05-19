@@ -1,4 +1,4 @@
-'''
+/*
 EXAMPLE PROCEDURES
 
 -- Drop procedures if they already exist
@@ -49,4 +49,4 @@ BEGIN
 END //
 
 DELIMITER ;
-'''
+*/

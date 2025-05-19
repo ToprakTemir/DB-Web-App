@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChessDB - Database Manager Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logout {
+            background-color: #f44336;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error, .success {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 3px;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            margin-bottom: 15px;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            color: #333;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #ccc;
+        }
+        .tabcontent {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+        .active-tab {
+            display: block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Database Manager Dashboard</h1>
+            <button class="logout" onclick="window.location.href='/logout'">Logout</button>
+        </div>
+        
+        <div id="message-container">
+            <!-- Success or error messages will be displayed here -->
+        </div>
+        
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'addUser')">Add New User</button>
+            <button class="tablinks" onclick="openTab(event, 'renameHall')">Rename Hall</button>
+        </div>
+        
+        <!-- Add New User Tab -->
+        <div id="addUser" class="tabcontent active-tab">
+            <h2>Add New User</h2>
+            <form id="add-user-form" action="/database-manager/add-user" method="POST">
+                <div class="form-group">
+                    <label for="user-type">User Type</label>
+                    <select id="user-type" name="user_type" required>
+                        <option value="">Select User Type</option>
+                        <option value="player">Player</option>
+                        <option value="coach">Coach</option>
+                        <option value="arbiter">Arbiter</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                    <small>Password must be at least 8 characters, include uppercase, lowercase, digit, and special character.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="surname">Surname</label>
+                    <input type="text" id="surname" name="surname" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nationality">Nationality</label>
+                    <input type="text" id="nationality" name="nationality" required>
+                </div>
+                
+                <!-- Player-specific fields (initially hidden) -->
+                <div id="player-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="date-of-birth">Date of Birth (DD-MM-YYYY)</label>
+                        <input type="text" id="date-of-birth" name="date_of_birth" placeholder="DD-MM-YYYY">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fide-id">FIDE ID</label>
+                        <input type="text" id="fide-id" name="fide_id">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="elo-rating">ELO Rating</label>
+                        <input type="number" id="elo-rating" name="elo_rating">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="title-id">Title ID</label>
+                        <input type="text" id="title-id" name="title_id">
+                    </div>
+                </div>
+                
+                <!-- Arbiter-specific fields (initially hidden) -->
+                <div id="arbiter-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="experience-level">Experience Level</label>
+                        <input type="number" id="experience-level" name="experience_level" min="1" max="10">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="arbiter-certification">Certification</label>
+                        <input type="text" id="arbiter-certification" name="arbiter_certification">
+                    </div>
+                </div>
+                
+                <!-- Coach-specific fields (initially hidden) -->
+                <div id="coach-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="coach-certification">Certification</label>
+                        <input type="text" id="coach-certification" name="coach_certification">
+                    </div>
+                </div>
+                
+                <button type="submit">Add User</button>
+            </form>
+        </div>
+        
+        <!-- Rename Hall Tab -->
+        <div id="renameHall" class="tabcontent">
+            <h2>Rename Hall</h2>
+            <form id="rename-hall-form" action="/database-manager/rename-hall" method="POST">
+                <div class="form-group">
+                    <label for="hall-id">Select Hall</label>
+                    <select id="hall-id" name="hall_id" required>
+                        <option value="">Select a Hall</option>
+                        <!-- Hall options will be loaded here -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="new-hall-name">New Hall Name</label>
+                    <input type="text" id="new-hall-name" name="new_hall_name" required>
+                </div>
+                
+                <button type="submit">Rename Hall</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Show/hide fields based on user type selection
+        document.getElementById('user-type').addEventListener('change', function() {
+            const userType = this.value;
+            document.getElementById('player-fields').style.display = userType === 'player' ? 'block' : 'none';
+            document.getElementById('arbiter-fields').style.display = userType === 'arbiter' ? 'block' : 'none';
+            document.getElementById('coach-fields').style.display = userType === 'coach' ? 'block' : 'none';
+        });
+        
+        // Tab switching function
+        function openTab(evt, tabName) {
+            const tabcontent = document.getElementsByClassName("tabcontent");
+            for (let i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+                tabcontent[i].classList.remove("active-tab");
+            }
+            
+            const tablinks = document.getElementsByClassName("tablinks");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            
+            document.getElementById(tabName).style.display = "block";
+            document.getElementById(tabName).classList.add("active-tab");
+            evt.currentTarget.className += " active";
+        }
+        
+        // Load halls for the rename hall form (would be implemented with backend)
+        function loadHalls() {
+            // This would be an AJAX call to fetch halls from the server
+            // For now, we'll just show a placeholder
+            const hallSelect = document.getElementById('hall-id');
+            hallSelect.innerHTML = '<option value="">Select a Hall</option>' +
+                '<option value="1">Hall 1</option>' +
+                '<option value="2">Hall 2</option>' +
+                '<option value="3">Hall 3</option>';
+        }
+        
+        // Initialize the page
+        window.onload = function() {
+            loadHalls();
+        };
+    </script>
+</body>
+</html>

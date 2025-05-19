@@ -1,4 +1,4 @@
-'''
+/*
 EXAMPLE TRIGGERS
 
 
@@ -26,4 +26,4 @@ BEGIN
 END //
 
 DELIMITER ;
-'''
+*/

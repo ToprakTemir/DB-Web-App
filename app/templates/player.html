@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChessDB - Player Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logout {
+            background-color: #f44336;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error, .success {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 3px;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            margin-bottom: 15px;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            color: #333;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #ccc;
+        }
+        .tabcontent {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+        .active-tab {
+            display: block;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .action-btn {
+            margin-right: 5px;
+        }
+        .stats-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .stat-box {
+            flex: 1;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 15px;
+            margin-right: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-box:last-child {
+            margin-right: 0;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+            color: #2196F3;
+        }
+        .player-info {
+            display: flex;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .player-details {
+            flex: 2;
+        }
+        .player-stats {
+            flex: 1;
+            text-align: right;
+        }
+        .player-name {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .player-id {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .player-meta {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .rating {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2196F3;
+        }
+        .title {
+            font-weight: bold;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Player Dashboard</h1>
+            <button class="logout" onclick="window.location.href='/logout'">Logout</button>
+        </div>
+        
+        <div id="message-container">
+            <!-- Success or error messages will be displayed here -->
+        </div>
+        
+        <!-- Player Info Card -->
+        <div class="player-info">
+            <div class="player-details">
+                <div class="player-name">Alex Johnson</div>
+                <div class="player-id">FIDE ID: 128945</div>
+                <div class="player-meta">Nationality: USA</div>
+                <div class="player-meta">Teams: Chess Kings, NY Masters</div>
+            </div>
+            <div class="player-stats">
+                <div>ELO Rating</div>
+                <div class="rating">2285</div>
+                <div class="title">FIDE Master (FM)</div>
+            </div>
+        </div>
+        
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'opponents')">Opponent History</button>
+            <button class="tablinks" onclick="openTab(event, 'frequent')">Most Frequent Opponent</button>
+            <button class="tablinks" onclick="openTab(event, 'matches')">My Matches</button>
+        </div>
+        
+        <!-- Opponents History Tab -->
+        <div id="opponents" class="tabcontent active-tab">
+            <h2>Players You've Played Against</h2>
+            <table id="opponents-table">
+                <thead>
+                    <tr>
+                        <th>Player Name</th>
+                        <th>ELO Rating</th>
+                        <th>Title</th>
+                        <th>Nationality</th>
+                        <th>Times Played</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be loaded dynamically -->
+                    <tr>
+                        <td>Mike Williams</td>
+                        <td>2350</td>
+                        <td>International Master</td>
+                        <td>United Kingdom</td>
+                        <td>5</td>
+                    </tr>
+                    <tr>
+                        <td>Daniel Brown</td>
+                        <td>2175</td>
+                        <td>FIDE Master</td>
+                        <td>USA</td>
+                        <td>3</td>
+                    </tr>
+                    <tr>
+                        <td>Sarah Wilson</td>
+                        <td>2420</td>
+                        <td>International Master</td>
+                        <td>Canada</td>
+                        <td>2</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Most Frequent Opponent Tab -->
+        <div id="frequent" class="tabcontent">
+            <h2>Most Frequent Opponent</h2>
+            <div class="stats-container">
+                <div class="stat-box">
+                    <h3>Player Name</h3>
+                    <div class="stat-value">Mike Williams</div>
+                    <p>United Kingdom</p>
+                </div>
+                <div class="stat-box">
+                    <h3>ELO Rating</h3>
+                    <div class="stat-value">2350</div>
+                    <p>International Master</p>
+                </div>
+                <div class="stat-box">
+                    <h3>Matches Played</h3>
+                    <div class="stat-value">5</div>
+                    <p>Most recent: 10-04-2025</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- My Matches Tab -->
+        <div id="matches" class="tabcontent">
+            <h2>My Match History</h2>
+            <table id="matches-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Tournament</th>
+                        <th>Hall</th>
+                        <th>Team</th>
+                        <th>Opponent Team</th>
+                        <th>Opponent Player</th>
+                        <th>Arbiter</th>
+                        <th>Rating</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be loaded dynamically -->
+                    <tr>
+                        <td>10-04-2025</td>
+                        <td>Spring Championship</td>
+                        <td>Hall A</td>
+                        <td>Chess Kings</td>
+                        <td>Team Chess Masters</td>
+                        <td>Mike Williams</td>
+                        <td>John Smith</td>
+                        <td>8</td>
+                    </tr>
+                    <tr>
+                        <td>25-03-2025</td>
+                        <td>International Open</td>
+                        <td>Hall C</td>
+                        <td>NY Masters</td>
+                        <td>Royal Knights</td>
+                        <td>Daniel Brown</td>
+                        <td>Sarah Johnson</td>
+                        <td>7</td>
+                    </tr>
+                    <tr>
+                        <td>15-02-2025</td>
+                        <td>Winter Classic</td>
+                        <td>Hall B</td>
+                        <td>Chess Kings</td>
+                        <td>Strategic Minds</td>
+                        <td>Sarah Wilson</td>
+                        <td>Michael Brown</td>
+                        <td>9</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching function
+        function openTab(evt, tabName) {
+            const tabcontent = document.getElementsByClassName("tabcontent");
+            for (let i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+                tabcontent[i].classList.remove("active-tab");
+            }
+            
+            const tablinks = document.getElementsByClassName("tablinks");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            
+            document.getElementById(tabName).style.display = "block";
+            document.getElementById(tabName).classList.add("active-tab");
+            evt.currentTarget.className += " active";
+        }
+        
+        // Load opponent history
+        function loadOpponentHistory() {
+            // This would be replaced with actual AJAX call to fetch data from the server
+            // For demo purposes, we'll use the static data already in the table
+            console.log("Loading opponent history...");
+        }
+        
+        // Load most frequent opponent data
+        function loadMostFrequentOpponent() {
+            // This would be replaced with actual AJAX call to fetch data from the server
+            // For demo purposes, we'll use the static data already in the stats boxes
+            console.log("Loading most frequent opponent data...");
+        }
+        
+        // Load match history
+        function loadMatchHistory() {
+            // This would be replaced with actual AJAX call to fetch data from the server
+            // For demo purposes, we'll use the static data already in the table
+            console.log("Loading match history...");
+        }
+        
+        // Load player info
+        function loadPlayerInfo() {
+            // This would be replaced with actual AJAX call to fetch player data
+            console.log("Loading player info...");
+        }
+        
+        // Set up event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load initial data
+            loadPlayerInfo();
+            loadOpponentHistory();
+            loadMostFrequentOpponent();
+            loadMatchHistory();
+        });
+    </script>
+</body>
+</html>
