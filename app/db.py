@@ -37,3 +37,22 @@ def execute_sql_file(filename):
     # Returns a 2D array with results[query_number][row_number]
     return results
         
+def execute_sql_command(command):
+    db = get_db_connection()
+    cur = db.cursor()
+    try:
+        cur.execute(command)
+    except Exception as e:
+        print("Query execution failed:", e)
+
+    results = []
+
+    while cur.nextset():
+        result_set = cur.fetchall()
+        results.append(result_set)
+
+    cur.close()
+    db.commit()
+    db.close()
+
+    return results

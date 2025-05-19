@@ -50,3 +50,38 @@ END //
 
 DELIMITER ;
 */
+
+DROP PROCEDURE IF EXISTS CheckUserCredentials;
+
+DELIMITER //
+
+CREATE PROCEDURE CheckUserCredentials(
+    IN in_username VARCHAR(255),
+    IN in_password VARCHAR(255),
+    OUT matched BOOLEAN,
+    OUT matched_table VARCHAR(50)
+)
+BEGIN
+    SET matched = FALSE;
+    SET matched_table = NULL;
+
+    -- Check DBManagers
+    IF EXISTS (SELECT 1 FROM DBManagers WHERE username = in_username AND password = in_password) THEN
+        SET matched = TRUE;
+        SET matched_table = 'DBManagers';
+    -- Check Players
+    ELSEIF EXISTS (SELECT 1 FROM Players WHERE username = in_username AND password = in_password) THEN
+        SET matched = TRUE;
+        SET matched_table = 'Players';
+    -- Check Coaches
+    ELSEIF EXISTS (SELECT 1 FROM Coaches WHERE username = in_username AND password = in_password) THEN
+        SET matched = TRUE;
+        SET matched_table = 'Coaches';
+    -- Check Arbiters
+    ELSEIF EXISTS (SELECT 1 FROM Arbiters WHERE username = in_username AND password = in_password) THEN
+        SET matched = TRUE;
+        SET matched_table = 'Arbiters';
+    END IF;
+END //
+
+DELIMITER ;
