@@ -71,9 +71,9 @@ def fetch_available_arbiters():
     date = request.args.get('date')
     time_slot = request.args.get('time_slot')
 
-    results = execute_sql_command(f"SELECT name, surname FROM Arbiters WHERE username NOT IN (SELECT arbiter_username FROM Matches WHERE date = (STR_TO_DATE({date}, '%d-%m-%Y')) AND time_slot = {time_slot});")
+    results = execute_sql_command(f"SELECT username, name, surname FROM Arbiters WHERE username NOT IN (SELECT arbiter_username FROM Matches WHERE date = (STR_TO_DATE({date}, '%d-%m-%Y')) AND time_slot = {time_slot});")
     rows = results[0]
-    columns = ['name', 'surname']
+    columns = ['username', 'name', 'surname']
 
     # Convert to list of dicts
     result = [dict(zip(columns, row)) for row in rows]
@@ -346,8 +346,11 @@ def create_match():
     arbiter_username = request.form['arbiter_name']
     rating = 'NULL'
 
-    results = execute_sql_command(f"CALL InsertMatch({match_id}, '{date}', '{time_slot}', {hall_id}, {table_id}, {team1_id}, {team2_id}, '{arbiter_username}', {rating});")
-    return redirect('/dashboard/coach')
+    try:
+        execute_sql_command(f"CALL InsertMatch({match_id}, '{date}', '{time_slot}', {hall_id}, {table_id}, {team1_id}, {team2_id}, '{arbiter_username}', {rating});")
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
 
 @coach.route('/assign-player', methods=['POST'])
 def assign_player():

@@ -461,7 +461,7 @@
                     arbiterSelect.innerHTML = '<option value="">Select an Arbiter</option>';
                     data.forEach(arbiter => {
                         const option = document.createElement('option');
-                        option.value = arbiter.name;
+                        option.value = arbiter.username;
                         option.textContent = arbiter.name + ' ' + arbiter.surname;
                         arbiterSelect.appendChild(option);
                     });
