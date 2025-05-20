@@ -2,7 +2,7 @@ import math
 
 import pandas as pd
 import mysql.connector
-from db import get_db_connection, execute_sql_file
+from app.db import get_db_connection, execute_sql_file
 
 # Read Excel file, sheet_name=None returns a dictionary of DataFrames with sheet names as keys
 data_file = pd.read_excel('ChessDB_initial_data.xlsx', sheet_name=None, engine='openpyxl')
@@ -21,7 +21,7 @@ for table_name in data_file.keys():
     cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
 
 # recreate the tables
-execute_sql_file('schema.sql')
+execute_sql_file('sql/schema.sql')
 
 print("--------------------------------------------------------------")
 
