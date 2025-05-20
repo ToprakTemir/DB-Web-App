@@ -1,4 +1,4 @@
-# app/__init__.py
+# code/__init__.py
 from flask import Flask
 from .routes import main as main_blueprint, data as data_blueprint, dashboard as dashboard_blueprint, db_manager as db_manager_blueprint, coach as coach_blueprint
 

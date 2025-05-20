@@ -18,7 +18,7 @@ CREATE TABLE Players(
     surname VARCHAR(50) NOT NULL,
     nationality VARCHAR(50) NOT NULL,
     date_of_birth DATE NOT NULL,
-    fide_ID INT NOT NULL,
+    fide_ID VARCHAR(7) NOT NULL, # FIDEXXX
     elo_rating INT NOT NULL,
     title_id INT NOT NULL,
     FOREIGN KEY (title_id) REFERENCES Titles(title_id)
@@ -54,7 +54,7 @@ CREATE TABLE PlayerTeams(
 );
 
 CREATE TABLE Coaches(
-    username VARCHAR(50) NOT NULL,
+    username VARCHAR(50) PRIMARY KEY,
     password VARCHAR(50) NOT NULL,
     name VARCHAR(50) NOT NULL,
     surname VARCHAR(50) NOT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE Coaches(
     team_id INT NOT NULL,
     contract_start DATE NOT NULL,
     contract_finish DATE NOT NULL,
-    PRIMARY KEY (username, contract_start),  # Multiple contract records allowed for coaches
+    UNIQUE (username, contract_start),  # Multiple contract records allowed for coaches
     FOREIGN KEY (team_id) REFERENCES Teams(team_id)
                                 ON DELETE CASCADE
                                 ON UPDATE CASCADE
@@ -124,7 +124,7 @@ CREATE TABLE Matches(
     team1_id INT NOT NULL,
     team2_id INT NOT NULL,
     arbiter_username VARCHAR(50) NOT NULL,
-    rating FLOAT,
+    ratings FLOAT,
 
     UNIQUE (date, time_slot, table_ID), # makes sure that there is only one match in a table at a given time slot
     UNIQUE (date, time_slot, arbiter_username), # makes sure that an arbiter oversees only one match at any given time
