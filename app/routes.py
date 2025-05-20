@@ -9,13 +9,8 @@ data = Blueprint('data', __name__, url_prefix='/data')
 dashboard = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 db_manager = Blueprint('db_manager', __name__, url_prefix='/db-manager')
 coach = Blueprint('coach', __name__, url_prefix='/coach')
-db_manager = Blueprint('db_manager', __name__, url_prefix='/dashboard/db-manager')
-coach = Blueprint('coach', __name__, url_prefix='/dashboard/coach')
-arbiter = Blueprint('arbiter', __name__, url_prefix='/dashboard/arbiter')
-player = Blueprint('player', __name__, url_prefix='/dashboard/player')
-
-
-
+arbiter = Blueprint('arbiter', __name__, url_prefix='/arbiter')
+player = Blueprint('player', __name__, url_prefix='/player')
 
 
 # ----- MAIN ROUTES (Prefix: None) -----
@@ -51,7 +46,6 @@ def login():
 def logout():
     session.pop('roles', None)
     return redirect('/login')
-
 
 
 # ----- DATA ROUTES (Prefix: /data) -----
@@ -394,8 +388,8 @@ def delete_match(match_id):
         return jsonify({"success": False, "message": str(e)})
 
 
-a
-# ----- ARBITER ROUTES (Prefix: /dashboard/arbiter) -----
+
+# ----- ARBITER ROUTES (Prefix: /arbiter) -----
 
 @arbiter.route('/assigned-matches')
 def fetch_assigned_matches():
@@ -468,11 +462,7 @@ def rate_match():
 
 
 
-
-
-    # ----- PLAYER ROUTES (Prefix: /dashboard/player) -----
-
-
+# ----- PLAYER ROUTES (Prefix: /player) -----
 
 @player.route('/profile')
 def fetch_profile():
