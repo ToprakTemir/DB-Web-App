@@ -10,6 +10,7 @@ dashboard = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 db_manager = Blueprint('db_manager', __name__, url_prefix='/dashboard/db-manager')
 coach = Blueprint('coach', __name__, url_prefix='/dashboard/coach')
 arbiter = Blueprint('arbiter', __name__, url_prefix='/dashboard/arbiter')
+player = Blueprint('player', __name__, url_prefix='/dashboard/player')
 
 
 
@@ -523,3 +524,47 @@ def rate_match():
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
+    
+
+
+
+
+    # ----- PLAYER ROUTES (Prefix: /dashboard/player) -----
+
+
+
+@player.route('/profile')
+def fetch_profile():
+    player_username = session['username']
+
+    sql_query = f'''
+    SELECT CONCAT(p.name, ' ', p.surname) as fullname,
+    p.fide_id, p.nationality, p.elo_rating, t.title_name
+    FROM Players p
+    JOIN Titles t ON p.title_id = t.title_id
+    WHERE p.username = '{player_username}'
+
+    '''
+
+    results = execute_sql_command(sql_query)
+    rows = results[0]
+    columns = ['fullname', 'fide_id', 'nationality', 'elo_rating', 'title_name']
+    
+    # Convert to list of dicts
+    result = [dict(zip(columns, row)) for row in rows]
+
+
+    sql_query = f'''
+    SELECT t.team_name
+    FROM Teams t
+    JOIN PlayerTeams pt ON t.team_id = pt.team_id
+    JOIN Players p ON p.username = pt.username
+    WHERE p.username = '{player_username}'
+
+    '''
+
+    results = execute_sql_command(sql_query)
+    rows = results[0]
+    result[0]['teams'] = [row[0] for row in rows]
+    
+    return jsonify(result)
