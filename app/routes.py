@@ -202,6 +202,16 @@ def fetch_available_players():
     
     return jsonify(result)
 
+@data.route('/coach-team')
+def fetch_coach_team():
+    coach_username = session['username']
+    sql_query = f"SELECT t.team_name FROM Teams t JOIN Coaches c ON c.team_id = t.team_id WHERE username = '{coach_username}'"
+    team_name = execute_sql_command(sql_query)[0][0][0]
+
+    return jsonify({'team_name': team_name})
+
+
+
 
 
 # ----- DASHBOARD ROUTES (Prefix: /dashboard) -----

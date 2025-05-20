@@ -162,6 +162,7 @@
     <div class="container">
         <div class="header">
             <h1>Coach Dashboard - {{ session['username'] }}</h1>
+            <h3>Your Team: <span id="team-name">Not Found</span></h3>
             <button class="logout" onclick="window.location.href='/logout'">Logout</button>
         </div>
         
@@ -801,6 +802,22 @@
             showModal('assign-modal');
         }
 
+        function loadCoachTeam(){
+            fetch('/data/coach-team')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    const teamName = document.getElementById("team-name");
+                    teamName.textContent = data.team_name;
+                })
+                .catch(error => {
+                    console.error('Error loading coach team:', error);
+                    showMessage('Failed to load coach team. Please try again later.', 'error');
+                });
+        }
+
         // Update event listeners in the DOMContentLoaded function
         document.addEventListener('DOMContentLoaded', function() {
             // Load data for all tabs
@@ -809,6 +826,7 @@
             loadUnassignedMatches();
             loadAllMatches();
             loadAllHalls();
+            loadCoachTeam();
             
             // Add event listener for hall selection to load tables
             document.getElementById('hall-id').addEventListener('change', function() {
