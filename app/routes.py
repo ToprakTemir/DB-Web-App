@@ -535,7 +535,7 @@ def fetch_opponent_history():
     WHERE ma.black_player = '{player_username}' AND m.date < CURDATE()
     GROUP BY ma.white_player
 
-    ORDER BY times_played
+    ORDER BY times_played DESC
     '''
 
     results = execute_sql_command(sql_query)
