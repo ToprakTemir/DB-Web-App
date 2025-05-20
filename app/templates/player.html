@@ -202,8 +202,8 @@
             <div class="player-details">
                 <div class="player-name">Alex Johnson</div>
                 <div class="player-id">FIDE ID: 128945</div>
-                <div class="player-meta">Nationality: USA</div>
-                <div class="player-meta">Teams: Chess Kings, NY Masters</div>
+                <div class="player-meta" id="player-nationality">Nationality: USA</div>
+                <div class="player-meta" id="player-teams">Teams: Chess Kings, NY Masters</div>
             </div>
             <div class="player-stats">
                 <div>ELO Rating</div>
@@ -375,8 +375,29 @@
         
         // Load player info
         function loadPlayerInfo() {
-            // This would be replaced with actual AJAX call to fetch player data
             console.log("Loading player info...");
+            
+            fetch('/dashboard/player/profile')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok");
+                    }
+                    return response.json();
+                })
+                .then(player => {
+                    const data = player[0];
+                    console.log("Player info received:", data);
+
+                    document.querySelector('.player-name').textContent = data.fullname;
+                    document.querySelector('.player-id').textContent = `FIDE ID: ${data.fide_id}`;
+                    document.getElementById('player-nationality').textContent = `Nationality: ${data.nationality}`;
+                    document.getElementById('player-teams').textContent = `Teams: ${data.teams.join(', ')}`;
+                    document.querySelector('.rating').textContent = data.elo_rating;
+                    document.querySelector('.title').textContent = data.title_name;
+                })
+                .catch(error => {
+                    console.error('Failed to load player info:', error);
+                });
         }
         
         // Set up event listeners

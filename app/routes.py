@@ -9,6 +9,13 @@ data = Blueprint('data', __name__, url_prefix='/data')
 dashboard = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 db_manager = Blueprint('db_manager', __name__, url_prefix='/db-manager')
 coach = Blueprint('coach', __name__, url_prefix='/coach')
+db_manager = Blueprint('db_manager', __name__, url_prefix='/dashboard/db-manager')
+coach = Blueprint('coach', __name__, url_prefix='/dashboard/coach')
+arbiter = Blueprint('arbiter', __name__, url_prefix='/dashboard/arbiter')
+player = Blueprint('player', __name__, url_prefix='/dashboard/player')
+
+
+
 
 
 # ----- MAIN ROUTES (Prefix: None) -----
@@ -208,7 +215,7 @@ def fetch_available_players():
 @dashboard.route('/')
 def show_dashboard():
     role = session.get('roles', [None])[0]
-    if role in ['db-manager', 'coach', 'player', 'arbiter']:
+    if role in ['db-manager', 'coach', 'player', 'arbiter', 'player', 'arbiter']:
         return render_template(f"{role}.html")
     return redirect('login')
 
@@ -235,15 +242,18 @@ def add_user():
 
         team_id = request.form['team_id'] # Optional
         
+        try:
+            execute_sql_command(f"CALL InsertPlayer('{username}', '{password}', '{name}', '{surname}', '{nationality}', '{date_of_birth}', '{fide_id}', {elo_rating}, {title_id});")
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)})
+        try:
+            if team_id:
+                execute_sql_command(f"CALL InsertPlayerTeam('{username}', {team_id});")
+        # If PlayerTeams insertion fails, revert Players insertion
+        except Exception as e:
+            execute_sql_command(f"DELETE FROM TABLE Players WHERE username = '{username}';")
+            return jsonify({"success": False, "message": str(e)})
 
-        results = execute_sql_command(f"CALL InsertPlayer('{username}', '{password}', '{name}', '{surname}', '{nationality}', '{date_of_birth}', {fide_id}, {elo_rating}, {title_id});")
-
-        # If optional team ID is provided and player insertion didn'opp fail, insert to PlayerTeams
-        if team_id != '' and not isinstance(results, str):
-            results = execute_sql_command(f"CALL InsertPlayerTeam('{username}', {team_id});")
-            # If PlayerTeams insertion fails, revert player insertion
-            if isinstance(results, str):
-                execute_sql_command(f"DELETE FROM TABLE Players WHERE username = {username}")
 
     elif user_type == 'coach':
         team_id = request.form['team_id']
@@ -252,24 +262,30 @@ def add_user():
 
         coach_certification = request.form['coach_certification'] # Optional
 
-        results = execute_sql_command(f"CALL InsertCoach('{username}', '{password}', '{name}', '{surname}', '{nationality}', {team_id}, '{start_date}', '{end_date}');")
-
-        if coach_certification != '' and not isinstance(results, str):
-            results = execute_sql_command(f"CALL InsertCoachCertification('{username}', '{coach_certification}');")
-            if isinstance(results, str):
-                execute_sql_command(f"DELETE FROM TABLE Coaches WHERE username = {username}")
+        try:
+            execute_sql_command(f"CALL InsertCoach('{username}', '{password}', '{name}', '{surname}', '{nationality}', {team_id}, '{start_date}', '{end_date}');")
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)})
+        try:
+            execute_sql_command(f"CALL InsertCoachCertification('{username}', '{coach_certification}');")
+        except Exception as e:
+            execute_sql_command(f"DELETE FROM TABLE Coaches WHERE username = {username}")
+            return jsonify({"success": False, "message": str(e)})
 
     elif user_type == 'arbiter':
         experience_level = request.form['experience_level']
 
         arbiter_certification = request.form['arbiter_certification'] # Optional
 
-        results = execute_sql_command(f"CALL InsertArbiter('{username}', '{password}', '{name}', '{surname}', '{nationality}', '{experience_level}');")
-
-        if arbiter_certification != '' and not isinstance(results, str):
-            results = execute_sql_command(f"CALL InsertArbiterCertification('{username}', '{arbiter_certification}');")
-            if isinstance(results, str):
-                execute_sql_command(f"DELETE FROM TABLE Arbiters WHERE username = {username}")
+        try:
+            execute_sql_command(f"CALL InsertArbiter('{username}', '{password}', '{name}', '{surname}', '{nationality}', '{experience_level}');")
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)})
+        try:
+            execute_sql_command(f"CALL InsertArbiterCertification('{username}', '{arbiter_certification}');")
+        except Exception as e:
+            execute_sql_command(f"DELETE FROM TABLE Arbiters WHERE username = {username}")
+            return jsonify({"success": False, "message": str(e)})
 
     return redirect('/db-manager')
 
@@ -277,9 +293,12 @@ def add_user():
 def rename_hall():
     hall_id = request.form['hall_id']
     new_name = request.form['new_hall_name']
-    results = execute_sql_command(f"UPDATE Halls SET hall_name = '{new_name}' WHERE hall_id = '{hall_id}';")
-    # TODO: some success message
-    return redirect('/db-manager')
+    try:
+        execute_sql_command(f"UPDATE Halls SET hall_name = '{new_name}' WHERE hall_id = '{hall_id}';")
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+    return jsonify({"success": True})
+
 
 
 
@@ -299,10 +318,10 @@ def create_match():
     team1_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{session['username']}';")[0][0][0]
     team2_id = request.form['opponent_team_id']
     arbiter_username = request.form['arbiter_name']
-    rating = 'NULL'
+    ratings = 'NULL'
 
     try:
-        execute_sql_command(f"CALL InsertMatch({match_id}, '{date}', '{time_slot}', {hall_id}, {table_id}, {team1_id}, {team2_id}, '{arbiter_username}', {rating});")
+        execute_sql_command(f"CALL InsertMatch({match_id}, '{date}', '{time_slot}', {hall_id}, {table_id}, {team1_id}, {team2_id}, '{arbiter_username}', {ratings});")
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
@@ -374,3 +393,119 @@ def delete_match(match_id):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
 
+
+a
+# ----- ARBITER ROUTES (Prefix: /dashboard/arbiter) -----
+
+@arbiter.route('/assigned-matches')
+def fetch_assigned_matches():
+    arbiter_username = session['username']
+
+    sql_query = f'''
+    SELECT m.match_id, DATE_FORMAT(m.date, '%d-%m-%Y') as match_date, m.time_slot, 
+       h.hall_name, m.table_id, t1.team_name as team1, t2.team_name as team2,
+       CONCAT(p1.name, ' ', p1.surname) as player1,
+       CONCAT(p2.name, ' ', p2.surname) as player2,
+       m.ratings
+    FROM Matches m
+    JOIN Halls h ON m.hall_id = h.hall_id
+    JOIN Teams t1 ON m.team1_id = t1.team_id
+    JOIN Teams t2 ON m.team2_id = t2.team_id
+    JOIN MatchAssignments ma ON ma.match_id = m.match_id
+    JOIN Players p1 ON p1.username = ma.white_player
+    JOIN Players p2 ON p2.username = ma.black_player
+    WHERE m.arbiter_username = '{arbiter_username}'
+    
+    '''
+
+    results = execute_sql_command(sql_query)
+    rows = results[0]
+    columns = ['match_id', 'match_date', 'time_slot', 'hall_name', 'table_id', 'team1', 'team2', 'player1', 'player2', 'ratings']
+
+    # Convert to list of dicts
+    result = [dict(zip(columns, row)) for row in rows]
+
+    return jsonify(result)
+
+@arbiter.route('/rating-stats')
+def fetch_rating_stats():
+    arbiter_username = session['username']
+
+    sql_query = f'''
+    SELECT COUNT(*) AS total_matches_rated, ROUND(AVG(ratings), 1) AS average_rating_given
+    FROM Matches
+    WHERE arbiter_username = '{arbiter_username}' AND ratings IS NOT NULL
+    
+    '''
+
+    results = execute_sql_command(sql_query)
+    rows = results[0]
+    columns = ['total_matches_rated', 'average_rating_given']
+
+    # Convert to list of dicts
+    result = [dict(zip(columns, row)) for row in rows]
+
+    return jsonify(result)
+
+@arbiter.route('/rate-match', methods=['POST'])
+def rate_match():
+    data = request.json
+    match_id = data.get('match_id')
+    rating = data.get('rating')
+
+    sql_query = f'''
+    UPDATE Matches
+    SET ratings = {rating}
+    WHERE match_id = {match_id}
+    
+    '''
+
+    try:
+        execute_sql_command(sql_query)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+
+
+
+
+
+    # ----- PLAYER ROUTES (Prefix: /dashboard/player) -----
+
+
+
+@player.route('/profile')
+def fetch_profile():
+    player_username = session['username']
+
+    sql_query = f'''
+    SELECT CONCAT(p.name, ' ', p.surname) as fullname,
+    p.fide_id, p.nationality, p.elo_rating, t.title_name
+    FROM Players p
+    JOIN Titles t ON p.title_id = t.title_id
+    WHERE p.username = '{player_username}'
+
+    '''
+
+    results = execute_sql_command(sql_query)
+    rows = results[0]
+    columns = ['fullname', 'fide_id', 'nationality', 'elo_rating', 'title_name']
+
+    # Convert to list of dicts
+    result = [dict(zip(columns, row)) for row in rows]
+
+
+    sql_query = f'''
+    SELECT t.team_name
+    FROM Teams t
+    JOIN PlayerTeams pt ON t.team_id = pt.team_id
+    JOIN Players p ON p.username = pt.username
+    WHERE p.username = '{player_username}'
+
+    '''
+
+    results = execute_sql_command(sql_query)
+    rows = results[0]
+    result[0]['teams'] = [row[0] for row in rows]
+
+    return jsonify(result)

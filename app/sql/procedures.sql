@@ -49,7 +49,7 @@ CREATE PROCEDURE InsertPlayer(
     IN in_surname VARCHAR(50),
     IN in_nationality VARCHAR(50),
     IN in_date_of_birth VARCHAR(50),
-    IN in_fide_ID INT,
+    IN in_fide_ID VARCHAR(7),
     IN in_elo_rating INT,
     IN in_title_id INT
 )
@@ -201,7 +201,7 @@ CREATE PROCEDURE InsertMatch(
     IN in_team1_id INT,
     IN in_team2_id INT,
     IN in_arbiter_username VARCHAR(50),
-    IN in_rating FLOAT
+    IN in_ratings FLOAT
 )
 BEGIN
     INSERT INTO Matches (
@@ -224,7 +224,7 @@ BEGIN
         in_team1_id, 
         in_team2_id, 
         in_arbiter_username, 
-        in_rating
+        in_ratings
     );
 END //
 
