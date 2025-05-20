@@ -7,8 +7,8 @@ import json
 main = Blueprint('main', __name__)
 data = Blueprint('data', __name__, url_prefix='/data')
 dashboard = Blueprint('dashboard', __name__, url_prefix='/dashboard')
-db_manager = Blueprint('db_manager', __name__, url_prefix='/dashboard/db-manager')
-coach = Blueprint('coach', __name__, url_prefix='/dashboard/coach')
+db_manager = Blueprint('db_manager', __name__, url_prefix='/db-manager')
+coach = Blueprint('coach', __name__, url_prefix='/coach')
 
 
 # ----- MAIN ROUTES (Prefix: None) -----
@@ -208,7 +208,7 @@ def show_dashboard():
     return redirect('login')
 
 
-# ----- DB MANAGER ROUTES (Prefix: /dashboard/db-manager) -----
+# ----- DB MANAGER ROUTES (Prefix: /db-manager) -----
 
 @db_manager.route('/add-user', methods=['POST'])
 def add_user():
@@ -266,20 +266,19 @@ def add_user():
             if isinstance(results, str):
                 execute_sql_command(f"DELETE FROM TABLE Arbiters WHERE username = {username}")
 
-    return redirect('/dashboard/db-manager')
+    return redirect('/db-manager')
 
 @db_manager.route('/rename-hall', methods=['POST'])
 def rename_hall():
     hall_id = request.form['hall_id']
     new_name = request.form['new_hall_name']
     results = execute_sql_command(f"UPDATE Halls SET hall_name = '{new_name}' WHERE hall_id = '{hall_id}';")
-    return redirect('/dashboard/db-manager')
+    # TODO: some success message
+    return redirect('/db-manager')
 
 
 
-
-
-# ----- COACH ROUTES (Prefix: /dashboard/coach) -----
+# ----- COACH ROUTES (Prefix: /coach) -----
 
 @coach.route('/create-match', methods=['POST'])
 def create_match():

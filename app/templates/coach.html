@@ -179,7 +179,7 @@
         <!-- Create Match Tab -->
         <div id="createMatch" class="tabcontent active-tab">
             <h2>Create New Match</h2>
-            <form id="create-match-form" action="/dashboard/coach/create-match" method="POST">
+            <form id="create-match-form" action="/coach/create-match" method="POST">
                 <div class="form-group">
                     <label for="match-date">Match Date (DD-MM-YYYY)</label>
                     <input type="text" id="match-date" name="match_date" placeholder="DD-MM-YYYY" required>
@@ -271,7 +271,7 @@
             <div id="assign-modal" class="modal">
                 <div class="modal-content">
                     <h3>Assign Player to Match</h3>
-                    <form id="assign-player-form" action="/dashboard/coach/assign-player" method="POST">
+                    <form id="assign-player-form" action="/coach/assign-player" method="POST">
                         <input type="hidden" id="match-id" name="match_id">
                         
                         <div class="form-group">
@@ -714,7 +714,7 @@
             };
             
             // Submit assignment via AJAX
-            fetch('/dashboard/coach/assign-player', {
+            fetch('/coach/assign-player', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -842,7 +842,7 @@
                 // Submit the form data via AJAX
                 const formData = new FormData(this);
                 
-                fetch('/dashboard/coach/create-match', {
+                fetch('/coach/create-match', {
                     method: 'POST',
                     body: formData
                 })
