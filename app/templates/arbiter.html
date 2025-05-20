@@ -205,7 +205,7 @@
                         <th>Team 2</th>
                         <th>Player 1</th>
                         <th>Player 2</th>
-                        <th>Status</th>
+                        <th>Rating</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -276,7 +276,7 @@
         <div id="rate-modal" class="modal">
             <div class="modal-content">
                 <h3>Rate Match</h3>
-                <form id="rate-match-form" action="/arbiter/rate-match" method="POST">
+                <form id="rate-match-form" action="/dashboard/arbiter/rate-match" method="POST">
                     <input type="hidden" id="rate-match-id" name="match_id">
                     
                     <div class="form-group">
@@ -329,9 +329,40 @@
         
         // Load assigned matches
         function loadAssignedMatches() {
-            // This would be replaced with actual AJAX call to fetch data from the server
-            // For demo purposes, we'll use the static data already in the table
-            console.log("Loading assigned matches...");
+            fetch('/dashboard/arbiter/assigned-matches')
+                .then(response => {
+                    if (!response.ok) throw new Error('Failed to fetch assigned matches');
+                    return response.json();
+                })
+                .then(matches => {
+                    const tbody = document.querySelector('#assigned-matches-table tbody');
+                    tbody.innerHTML = ''; // Clear existing rows
+
+                    matches.forEach(match => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${match.match_date}</td>
+                            <td>${match.time_slot}</td>
+                            <td>${match.hall_name}</td>
+                            <td>${match.table_id}</td>
+                            <td>${match.team1}</td>
+                            <td>${match.team2}</td>
+                            <td>${match.player1}</td>
+                            <td>${match.player2}</td>
+                            <td>${match.ratings == null ? 'Not rated.' : match.ratings}</td>
+                            <td>
+                                ${match.ratings == null ? 
+                                    `<button class="rate-btn" onclick="showRateMatchModal(${match.id})">Rate Match</button>` :
+                                    'Already rated.'}
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error(error);
+                    showMessage('Error loading assigned matches.', 'error');
+                });
         }
         
         // Load rating statistics

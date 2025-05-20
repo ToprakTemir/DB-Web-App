@@ -9,9 +9,15 @@ data = Blueprint('data', __name__, url_prefix='/data')
 dashboard = Blueprint('dashboard', __name__, url_prefix='/dashboard')
 db_manager = Blueprint('db_manager', __name__, url_prefix='/dashboard/db-manager')
 coach = Blueprint('coach', __name__, url_prefix='/dashboard/coach')
+arbiter = Blueprint('arbiter', __name__, url_prefix='/dashboard/arbiter')
+
+
+
 
 
 # ----- MAIN ROUTES (Prefix: None) -----
+
+
 
 @main.route('/')
 def home():
@@ -54,6 +60,8 @@ def logout():
 
 
 # ----- DATA ROUTES (Prefix: /data) -----
+
+
 
 @data.route('/halls')
 def fetch_halls():
@@ -204,7 +212,11 @@ def fetch_available_players():
 
 
 
+
+
 # ----- DASHBOARD ROUTES (Prefix: /dashboard) -----
+
+
 
 @dashboard.route('/player')
 def player_dashboard():
@@ -259,6 +271,8 @@ def arbiter_dashboard():
 
 
 # ----- DB MANAGER ROUTES (Prefix: /dashboard/db-manager) -----
+
+
 
 @db_manager.route('/add-user', methods=['POST'])
 def add_user():
@@ -341,6 +355,8 @@ def rename_hall():
 
 
 # ----- COACH ROUTES (Prefix: /dashboard/coach) -----
+
+
 
 @coach.route('/create-match', methods=['POST'])
 def create_match():
@@ -431,3 +447,40 @@ def delete_match(match_id):
     except Exception as e:
         return jsonify({"success": False, "message": str(e)})
 
+
+
+
+
+# ----- ARBITER ROUTES (Prefix: /dashboard/arbiter) -----
+
+
+
+@arbiter.route('/assigned-matches')
+def fetch_assigned_matches():
+    arbiter_username = session['username']
+
+    sql_query = f'''
+    SELECT m.match_id, DATE_FORMAT(m.date, '%d-%m-%Y') as match_date, m.time_slot, 
+       h.hall_name, m.table_id, t1.team_name as team1, t2.team_name as team2,
+       CONCAT(p1.name, ' ', p1.surname) as player1,
+       CONCAT(p2.name, ' ', p2.surname) as player2,
+       m.ratings
+    FROM Matches m
+    JOIN Halls h ON m.hall_id = h.hall_id
+    JOIN Teams t1 ON m.team1_id = t1.team_id
+    JOIN Teams t2 ON m.team2_id = t2.team_id
+    JOIN MatchAssignments ma ON ma.match_id = m.match_id
+    JOIN Players p1 ON p1.username = ma.white_player
+    JOIN Players p2 ON p2.username = ma.black_player
+    WHERE m.arbiter_username = '{arbiter_username}'
+    
+    '''
+
+    results = execute_sql_command(sql_query)
+    rows = results[0]
+    columns = ['match_id', 'match_date', 'time_slot', 'hall_name', 'table_id', 'team1', 'team2', 'player1', 'player2', 'ratings']
+    
+    # Convert to list of dicts
+    result = [dict(zip(columns, row)) for row in rows]
+    
+    return jsonify(result)
