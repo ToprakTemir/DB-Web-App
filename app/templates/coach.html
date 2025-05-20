@@ -745,7 +745,7 @@
 
         // Function to handle match deletion
         function deleteMatch(matchId) {
-            fetch(`/dashboard/coach/delete-match/${matchId}`, {
+            fetch(`/coach/delete-match/${matchId}`, {
                 method: 'DELETE',
             })
             .then(response => {

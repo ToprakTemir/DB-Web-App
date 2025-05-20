@@ -120,7 +120,7 @@ def fetch_coach_matches():
        CONCAT(a.name, ' ', a.surname) as arbiter_name,
        CONCAT(yp.name, ' ', yp.surname) as player_name,
        CONCAT(opp.name, ' ', opp.surname) as opponent_player_name,
-       m.rating
+       m.ratings
     FROM Matches m
     JOIN Halls h ON m.hall_id = h.hall_id
     JOIN Teams opp_t ON m.team2_id = opp_t.team_id
@@ -137,7 +137,7 @@ def fetch_coach_matches():
        CONCAT(a.name, ' ', a.surname) as arbiter_name,
        CONCAT(yp.name, ' ', yp.surname) as player_name,
        CONCAT(opp.name, ' ', opp.surname) as opponent_player_name,
-       m.rating
+       m.ratings
     FROM Matches m
     JOIN Halls h ON m.hall_id = h.hall_id
     JOIN Teams opp_t ON m.team1_id = opp_t.team_id
@@ -148,9 +148,14 @@ def fetch_coach_matches():
     WHERE m.team2_id = {team_id}
 
     """
-    
-    results = execute_sql_command(sql_query)
-    rows = results[0]
+
+    try:
+        results = execute_sql_command(sql_query)
+        rows = results[0]
+    except Exception as error:
+        print(f"Error executing SQL query: {error}")
+        return jsonify({"error": "Failed to fetch matches."}), 500
+
     columns = ['match_id', 'match_date', 'time_slot', 'hall_name', 'table_id', 'opponent_team_name', 
                'arbiter_name', 'player_name', 'opponent_player_name', 'rating']
     
@@ -189,7 +194,7 @@ def fetch_available_players():
     
     results = execute_sql_command(sql_query)
     rows = results[0]
-    columns = ['player_username', 'name', 'surname', 'rating']
+    columns = ['player_username', 'name', 'surname', 'ratings']
     
     # Convert to list of dicts
     result = [dict(zip(columns, row)) for row in rows]
