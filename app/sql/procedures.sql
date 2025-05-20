@@ -213,7 +213,7 @@ BEGIN
         team1_id, 
         team2_id, 
         arbiter_username, 
-        rating
+        ratings
     )
     VALUES (
         in_match_id, 
