@@ -42,8 +42,8 @@ def seed_data():
         "Halls",
         "Tables",
         "Matches",
-        "MatchAssignments",
-        "PlayerTeams"
+        "PlayerTeams",
+        "MatchAssignments"
     ]
 
     for table_name in insertion_order:
@@ -53,6 +53,20 @@ def seed_data():
 
         data = data_file[table_name]
         columns = data.columns.tolist()
+
+        # this block assumes PlayerTeams table is already filled!
+        if table_name == 'MatchAssignments':
+            white_players = data['white_player'].tolist()
+            black_players = data['black_player'].tolist()
+            white_teams_query = f"SELECT team_id FROM PlayerTeams WHERE username IN ({', '.join(map(repr, white_players))})"
+            black_teams_query = f"SELECT team_id FROM PlayerTeams WHERE username IN ({', '.join(map(repr, black_players))})"
+            cursor.execute(white_teams_query)
+            white_teams = cursor.fetchall()
+            cursor.execute(black_teams_query)
+            black_teams = cursor.fetchall()
+            data['team1_id'] = [team[0] for team in white_teams]
+            data['team2_id'] = [team[0] for team in black_teams]
+            columns += ['team1_id', 'team2_id']
 
         column_names = ', '.join(columns) # column names seperated by ', '
         column_value_placeholders = ', '.join(['%s'] * len(columns)) # %s for each column
