@@ -351,9 +351,12 @@
                             <td>${match.player2}</td>
                             <td>${match.ratings == null ? 'Not rated.' : match.ratings}</td>
                             <td>
-                                ${match.ratings == null ? 
+                                ${parseDate(match.match_date) > new Date() ?
+                                'Upcoming match' :
+                                (match.ratings == null ? 
                                     `<button class="rate-btn" onclick="showRateMatchModal(${match.match_id})">Rate Match</button>` :
-                                    'Already rated.'}
+                                    'Already rated.')
+                                }
                             </td>
                         `;
                         tbody.appendChild(row);
@@ -391,7 +394,12 @@
                 .catch(error => {
                     console.error('Error fetching rating stats:', error);
                 });
-}
+        }
+
+        function parseDate(dateStr) {
+            const [day, month, year] = dateStr.split('-');
+            return new Date(`${year}-${month}-${day}`);
+        }
         
         // Set up event listeners
         document.addEventListener('DOMContentLoaded', function() {
