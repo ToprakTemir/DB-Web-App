@@ -161,7 +161,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Coach Dashboard</h1>
+            <h1>Coach Dashboard - {{ session['username'] }}</h1>
             <button class="logout" onclick="window.location.href='/logout'">Logout</button>
         </div>
         
@@ -683,7 +683,7 @@
                         data.forEach(player => {
                             const option = document.createElement('option');
                             option.value = player.player_username;
-                            option.textContent = `${player.name} ${player.surname} (Rating: ${player.rating})`;
+                            option.textContent = `${player.name} ${player.surname} (Rating: ${player.ratings})`;
                             playerSelect.appendChild(option);
                         });
                     }
