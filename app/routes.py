@@ -1,4 +1,4 @@
-# code/routes.py
+# app/routes.py
 
 from flask import Blueprint, render_template, redirect, request, session, jsonify
 from .db import execute_sql_command
