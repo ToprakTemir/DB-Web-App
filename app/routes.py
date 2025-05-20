@@ -484,3 +484,23 @@ def fetch_assigned_matches():
     result = [dict(zip(columns, row)) for row in rows]
     
     return jsonify(result)
+
+@arbiter.route('/rating-stats')
+def fetch_rating_stats():
+    arbiter_username = session['username']
+
+    sql_query = f'''
+    SELECT COUNT(*) AS total_matches_rated, ROUND(AVG(ratings), 1) AS average_rating_given
+    FROM Matches
+    WHERE arbiter_username = '{arbiter_username}' AND ratings IS NOT NULL
+    
+    '''
+
+    results = execute_sql_command(sql_query)
+    rows = results[0]
+    columns = ['total_matches_rated', 'average_rating_given']
+    
+    # Convert to list of dicts
+    result = [dict(zip(columns, row)) for row in rows]
+    
+    return jsonify(result)

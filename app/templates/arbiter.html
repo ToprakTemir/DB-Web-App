@@ -367,10 +367,31 @@
         
         // Load rating statistics
         function loadRatingStats() {
-            // This would be replaced with actual AJAX call to fetch data from the server
-            // For demo purposes, we'll use the static data already in the stats boxes
             console.log("Loading rating statistics...");
-        }
+
+            fetch('/dashboard/arbiter/rating-stats')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(datalist => {
+                    // Update Total Matches Rated
+                    datalist.forEach(data => {
+                        document.querySelector('#ratingStats .stat-box:nth-child(1) .stat-value').textContent = data.total_matches_rated ?? 0;
+
+                        // Update Average Rating Given (formatted to 1 decimal place)
+                        const avgRating = data.average_rating_given;
+                        document.querySelector('#ratingStats .stat-box:nth-child(2) .stat-value').textContent =
+                            (avgRating !== null && avgRating !== undefined) ? avgRating : '0.0';
+                    });
+                    
+                })
+                .catch(error => {
+                    console.error('Error fetching rating stats:', error);
+                });
+}
         
         // Set up event listeners
         document.addEventListener('DOMContentLoaded', function() {
