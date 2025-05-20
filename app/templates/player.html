@@ -377,7 +377,7 @@
         function loadPlayerInfo() {
             console.log("Loading player info...");
             
-            fetch('/dashboard/player/profile')
+            fetch('/player/profile')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error("Network response was not ok");
