@@ -504,3 +504,22 @@ def fetch_rating_stats():
     result = [dict(zip(columns, row)) for row in rows]
     
     return jsonify(result)
+
+@arbiter.route('/rate-match', methods=['POST'])
+def rate_match():
+    data = request.json
+    match_id = data.get('match_id')
+    rating = data.get('rating')
+
+    sql_query = f'''
+    UPDATE Matches
+    SET ratings = {rating}
+    WHERE match_id = {match_id}
+    
+    '''
+
+    try:
+        execute_sql_command(sql_query)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
