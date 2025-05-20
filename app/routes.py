@@ -546,3 +546,9 @@ def fetch_opponent_history():
     result = [dict(zip(columns, row)) for row in rows]
 
     return jsonify(result)
+
+@player.route('/frequent-opponent')
+def fetch_frequent_opponent():
+    opponent_history = fetch_opponent_history()
+    most_frequent = json.loads(opponent_history.get_data(as_text=True))[0] # ORDER BY used in opponent history query
+    return jsonify(most_frequent)

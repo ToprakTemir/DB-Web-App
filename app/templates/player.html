@@ -264,18 +264,17 @@
             <div class="stats-container">
                 <div class="stat-box">
                     <h3>Player Name</h3>
-                    <div class="stat-value">Mike Williams</div>
-                    <p>United Kingdom</p>
+                    <div class="stat-value" id="player-name">Mike Williams</div>
+                    <p id="player-country">United Kingdom</p>
                 </div>
                 <div class="stat-box">
                     <h3>ELO Rating</h3>
-                    <div class="stat-value">2350</div>
-                    <p>International Master</p>
+                    <div class="stat-value" id="elo-rating">2350</div>
+                    <p id="player-title">International Master</p>
                 </div>
                 <div class="stat-box">
                     <h3>Matches Played</h3>
-                    <div class="stat-value">5</div>
-                    <p>Most recent: 10-04-2025</p>
+                    <div class="stat-value" id="matches-played">5</div>
                 </div>
             </div>
         </div>
@@ -393,9 +392,24 @@
         
         // Load most frequent opponent data
         function loadMostFrequentOpponent() {
-            // This would be replaced with actual AJAX call to fetch data from the server
-            // For demo purposes, we'll use the static data already in the stats boxes
             console.log("Loading most frequent opponent data...");
+
+            fetch('/player/frequent-opponent')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    document.getElementById("player-name").textContent = data.player_name;
+                    document.getElementById("player-country").textContent = data.nationality;
+                    document.getElementById("elo-rating").textContent = data.elo_rating;
+                    document.getElementById("player-title").textContent = data.title_name;
+                    document.getElementById("matches-played").textContent = data.times_played;
+                })
+                .catch(error => {
+                    console.error('Error loading most frequent opponent:', error);
+                    showMessage('Failed to load most frequent opponent. Please try again later.', 'error');
+                });
         }
         
         // Load match history
