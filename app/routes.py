@@ -279,15 +279,17 @@ def add_user():
 
         team_id = request.form['team_id'] # Optional
         
-
-        results = execute_sql_command(f"CALL InsertPlayer('{username}', '{password}', '{name}', '{surname}', '{nationality}', '{date_of_birth}', {fide_id}, {elo_rating}, {title_id});")
-
-        # If optional team ID is provided and player insertion didn'opp fail, insert to PlayerTeams
-        if team_id != '' and not isinstance(results, str):
-            results = execute_sql_command(f"CALL InsertPlayerTeam('{username}', {team_id});")
-            # If PlayerTeams insertion fails, revert player insertion
-            if isinstance(results, str):
-                execute_sql_command(f"DELETE FROM TABLE Players WHERE username = {username}")
+        try:
+            execute_sql_command(f"CALL InsertPlayer('{username}', '{password}', '{name}', '{surname}', '{nationality}', '{date_of_birth}', {fide_id}, {elo_rating}, {title_id});")
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)})
+        try:
+            execute_sql_command(f"CALL InsertPlayerTeam('{username}', {team_id});")
+        # If PlayerTeams insertion fails, revert Players insertion
+        except Exception as e:
+            execute_sql_command(f"DELETE FROM TABLE Players WHERE username = {username}")
+            return jsonify({"success": False, "message": str(e)})
+        
 
     elif user_type == 'coach':
         team_id = request.form['team_id']
@@ -296,33 +298,42 @@ def add_user():
 
         coach_certification = request.form['coach_certification'] # Optional
 
-        results = execute_sql_command(f"CALL InsertCoach('{username}', '{password}', '{name}', '{surname}', '{nationality}', {team_id}, '{start_date}', '{end_date}');")
-
-        if coach_certification != '' and not isinstance(results, str):
-            results = execute_sql_command(f"CALL InsertCoachCertification('{username}', '{coach_certification}');")
-            if isinstance(results, str):
-                execute_sql_command(f"DELETE FROM TABLE Coaches WHERE username = {username}")
+        try:
+            execute_sql_command(f"CALL InsertCoach('{username}', '{password}', '{name}', '{surname}', '{nationality}', {team_id}, '{start_date}', '{end_date}');")
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)})
+        try:
+            execute_sql_command(f"CALL InsertCoachCertification('{username}', '{coach_certification}');")
+        except Exception as e:
+            execute_sql_command(f"DELETE FROM TABLE Coaches WHERE username = {username}")
+            return jsonify({"success": False, "message": str(e)})
 
     elif user_type == 'arbiter':
         experience_level = request.form['experience_level']
 
         arbiter_certification = request.form['arbiter_certification'] # Optional
 
-        results = execute_sql_command(f"CALL InsertArbiter('{username}', '{password}', '{name}', '{surname}', '{nationality}', '{experience_level}');")
+        try:
+            execute_sql_command(f"CALL InsertArbiter('{username}', '{password}', '{name}', '{surname}', '{nationality}', '{experience_level}');")
+        except Exception as e:
+            return jsonify({"success": False, "message": str(e)})
+        try:
+            execute_sql_command(f"CALL InsertArbiterCertification('{username}', '{arbiter_certification}');")
+        except Exception as e:
+            execute_sql_command(f"DELETE FROM TABLE Arbiters WHERE username = {username}")
+            return jsonify({"success": False, "message": str(e)})
 
-        if arbiter_certification != '' and not isinstance(results, str):
-            results = execute_sql_command(f"CALL InsertArbiterCertification('{username}', '{arbiter_certification}');")
-            if isinstance(results, str):
-                execute_sql_command(f"DELETE FROM TABLE Arbiters WHERE username = {username}")
-
-    return redirect('/dashboard/db-manager')
+    return jsonify({"success": True})
 
 @db_manager.route('/rename-hall', methods=['POST'])
 def rename_hall():
     hall_id = request.form['hall_id']
     new_name = request.form['new_hall_name']
-    results = execute_sql_command(f"UPDATE Halls SET hall_name = '{new_name}' WHERE hall_id = '{hall_id}';")
-    return redirect('/dashboard/db-manager')
+    try:
+        execute_sql_command(f"UPDATE Halls SET hall_name = '{new_name}' WHERE hall_id = '{hall_id}';")
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+    return jsonify({"success": True})
 
 
 
