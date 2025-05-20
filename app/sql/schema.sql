@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS ChessDB;
 CREATE DATABASE IF NOT EXISTS ChessDB;
 USE ChessDB;
 
@@ -150,16 +151,16 @@ CREATE TABLE MatchAssignments(
     match_id INT PRIMARY KEY,
     white_player VARCHAR(50),
     black_player VARCHAR(50),
-    team1_id INT,
-    team2_id INT,
+    team1_id INT NOT NULL,
+    team2_id INT NOT NULL,
     result VARCHAR(50),
     FOREIGN KEY (match_id) REFERENCES Matches(match_id)
                                     ON DELETE RESTRICT
                                     ON UPDATE CASCADE,
     FOREIGN KEY (team1_id) REFERENCES Teams(team_id)
-                                    ON DELETE SET NULL
+                                    ON DELETE CASCADE
                                     ON UPDATE CASCADE,
     FOREIGN KEY (team2_id) REFERENCES Teams(team_id)
-                                    ON DELETE SET NULL
+                                    ON DELETE CASCADE
                                     ON UPDATE CASCADE
 );
