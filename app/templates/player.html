@@ -286,46 +286,42 @@
                 <thead>
                     <tr>
                         <th>Date</th>
-                        <th>Tournament</th>
+                        <th>Slot</th>
                         <th>Hall</th>
+                        <th>Table</th>
                         <th>Team</th>
                         <th>Opponent Team</th>
                         <th>Opponent Player</th>
                         <th>Arbiter</th>
                         <th>Rating</th>
+                        <th>Result</th>
                     </tr>
                 </thead>
                 <tbody>
                     <!-- Rows will be loaded dynamically -->
                     <tr>
                         <td>10-04-2025</td>
-                        <td>Spring Championship</td>
+                        <td>1</td>
                         <td>Hall A</td>
-                        <td>Chess Kings</td>
+                        <td>1</td>
                         <td>Team Chess Masters</td>
                         <td>Mike Williams</td>
                         <td>John Smith</td>
+                        <td>Sherlock Holmes</td>
                         <td>8</td>
+                        <td>Draw</td>
                     </tr>
                     <tr>
                         <td>25-03-2025</td>
-                        <td>International Open</td>
+                        <td>2</td>
                         <td>Hall C</td>
+                        <td>2</td>
                         <td>NY Masters</td>
                         <td>Royal Knights</td>
                         <td>Daniel Brown</td>
                         <td>Sarah Johnson</td>
                         <td>7</td>
-                    </tr>
-                    <tr>
-                        <td>15-02-2025</td>
-                        <td>Winter Classic</td>
-                        <td>Hall B</td>
-                        <td>Chess Kings</td>
-                        <td>Strategic Minds</td>
-                        <td>Sarah Wilson</td>
-                        <td>Michael Brown</td>
-                        <td>9</td>
+                        <td>Draw</td>
                     </tr>
                 </tbody>
             </table>
@@ -414,9 +410,49 @@
         
         // Load match history
         function loadMatchHistory() {
-            // This would be replaced with actual AJAX call to fetch data from the server
-            // For demo purposes, we'll use the static data already in the table
             console.log("Loading match history...");
+
+            fetch('/player/match-history')
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(data => {
+                    const matchesTable = document.getElementById('matches-table').getElementsByTagName('tbody')[0];
+                    matchesTable.innerHTML = ''; // Clear existing rows
+                    
+                    if (data.length === 0) {
+                        // Display a message if no matches exist
+                        const row = matchesTable.insertRow();
+                        const cell = row.insertCell();
+                        cell.colSpan = 10;
+                        cell.textContent = 'No matches found.';
+                        cell.style.textAlign = 'center';
+                        cell.style.padding = '20px';
+                    } else {
+                        // Populate table with all matches
+                        data.forEach(match => {
+                            const row = matchesTable.insertRow();
+                            
+                            // Add cells with match data
+                            row.insertCell().textContent = match.date;
+                            row.insertCell().textContent = match.slot;
+                            row.insertCell().textContent = match.hall_name;
+                            row.insertCell().textContent = `${match.table}`;
+                            row.insertCell().textContent = match.your_team;
+                            row.insertCell().textContent = match.opponent_team;
+                            row.insertCell().textContent = match.opponent_name;
+                            row.insertCell().textContent = match.arbiter_name;
+                            row.insertCell().textContent = match.rating || 'Not rated';
+                            row.insertCell().textContent = match.result || 'Unknown';
+                            
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading matches:', error);
+                    showMessage('Failed to load matches. Please try again later.', 'error');
+                });
         }
         
         // Load player info
