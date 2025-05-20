@@ -276,7 +276,7 @@
         <div id="rate-modal" class="modal">
             <div class="modal-content">
                 <h3>Rate Match</h3>
-                <form id="rate-match-form" action="/dashboard/arbiter/rate-match" method="POST">
+                <form id="rate-match-form" action="/arbiter/rate-match" method="POST">
                     <input type="hidden" id="rate-match-id" name="match_id">
                     
                     <div class="form-group">
@@ -329,7 +329,7 @@
         
         // Load assigned matches
         function loadAssignedMatches() {
-            fetch('/dashboard/arbiter/assigned-matches')
+            fetch('/arbiter/assigned-matches')
                 .then(response => {
                     if (!response.ok) throw new Error('Failed to fetch assigned matches');
                     return response.json();
@@ -369,7 +369,7 @@
         function loadRatingStats() {
             console.log("Loading rating statistics...");
 
-            fetch('/dashboard/arbiter/rating-stats')
+            fetch('/arbiter/rating-stats')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
@@ -419,7 +419,7 @@
                 submitBtn.disabled = true;
 
                 try {
-                    const response = await fetch('/dashboard/arbiter/rate-match', {
+                    const response = await fetch('/arbiter/rate-match', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ match_id: matchId, rating: rating })
