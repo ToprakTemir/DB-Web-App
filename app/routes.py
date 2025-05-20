@@ -552,3 +552,49 @@ def fetch_frequent_opponent():
     opponent_history = fetch_opponent_history()
     most_frequent = json.loads(opponent_history.get_data(as_text=True))[0] # ORDER BY used in opponent history query
     return jsonify(most_frequent)
+
+@player.route('/match-history')
+def fetch_match_history():
+    player_username = session['username']
+
+    sql_query = f'''
+    SELECT DATE_FORMAT(m.date, '%d-%m-%Y') as date, m.time_slot, h.hall_name, m.table_id, yt.team_name, opp_t.team_name,
+    CONCAT(opp.name, ' ', opp.surname) as opponent_name,
+    CONCAT(a.name, ' ', a.surname) as arbiter_name,
+    m.ratings, ma.result
+    FROM Matches m
+    JOIN MatchAssignments ma ON m.match_id = ma.match_id
+    JOIN Teams yt ON yt.team_id = ma.team1_id
+    JOIN Teams opp_t ON opp_t.team_id = ma.team2_id
+    JOIN Halls h ON m.hall_id = h.hall_id
+    JOIN Arbiters a ON m.arbiter_username = a.username
+    JOIN Players opp ON opp.username = ma.black_player
+    WHERE ma.white_player = '{player_username}' AND m.date < CURDATE()
+
+    UNION
+
+    SELECT DATE_FORMAT(m.date, '%d-%m-%Y') as date, m.time_slot, h.hall_name, m.table_id, yt.team_name, opp_t.team_name,
+    CONCAT(opp.name, ' ', opp.surname) as opponent_name,
+    CONCAT(a.name, ' ', a.surname) as arbiter_name,
+    m.ratings, ma.result
+    FROM Matches m
+    JOIN MatchAssignments ma ON m.match_id = ma.match_id
+    JOIN Teams yt ON yt.team_id = ma.team2_id
+    JOIN Teams opp_t ON opp_t.team_id = ma.team1_id
+    JOIN Halls h ON m.hall_id = h.hall_id
+    JOIN Arbiters a ON m.arbiter_username = a.username
+    JOIN Players opp ON opp.username = ma.white_player
+    WHERE ma.black_player = '{player_username}' AND m.date < CURDATE()
+
+    ORDER BY date DESC
+
+    '''
+
+    results = execute_sql_command(sql_query)
+    rows = results[0]
+    columns = ['date', 'slot', 'hall_name', 'table', 'your_team', 'opponent_team', 'opponent_name', 'arbiter_name', 'rating', 'result']
+
+    # Convert to list of dicts
+    result = [dict(zip(columns, row)) for row in rows]
+
+    return jsonify(result)
