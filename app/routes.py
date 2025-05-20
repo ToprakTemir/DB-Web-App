@@ -509,3 +509,40 @@ def fetch_profile():
     result[0]['teams'] = [row[0] for row in rows]
 
     return jsonify(result)
+
+@player.route('/opponent-history')
+def fetch_opponent_history():
+    player_username = session['username']
+
+    sql_query = f'''
+    SELECT CONCAT(p.name, ' ', p.surname) as player_name,
+    p.elo_rating, ti.title_name, p.nationality, COUNT(*) as times_played
+    FROM MatchAssignments ma
+    JOIN Players p ON ma.black_player = p.username
+    JOIN Titles ti ON ti.title_id = p.title_id
+    JOIN Matches m ON m.match_id = ma.match_id
+    WHERE ma.white_player = '{player_username}' AND m.date < CURDATE()
+    GROUP BY ma.black_player
+
+    UNION
+
+    SELECT CONCAT(p.name, ' ', p.surname) as player_name,
+    p.elo_rating, ti.title_name, p.nationality, COUNT(*) as times_played
+    FROM MatchAssignments ma
+    JOIN Players p ON ma.white_player = p.username
+    JOIN Titles ti ON ti.title_id = p.title_id
+    JOIN Matches m ON m.match_id = ma.match_id
+    WHERE ma.black_player = '{player_username}' AND m.date < CURDATE()
+    GROUP BY ma.white_player
+
+    ORDER BY times_played
+    '''
+
+    results = execute_sql_command(sql_query)
+    rows = results[0]
+    columns = ['player_name', 'elo_rating', 'title_name', 'nationality', 'times_played']
+
+    # Convert to list of dicts
+    result = [dict(zip(columns, row)) for row in rows]
+
+    return jsonify(result)
