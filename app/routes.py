@@ -1,7 +1,7 @@
 # app/routes.py
 
 from flask import Blueprint, render_template, redirect, request, session, jsonify
-from .db import execute_sql_command
+from app.common import execute_sql_command, encrypt_password
 import json
 
 main = Blueprint('main', __name__)
@@ -30,26 +30,20 @@ def login():
             session['username'] = username
             if table == 'DBManagers':
                 session['roles'] = ['db-manager']
-                return redirect('/dashboard/db-manager')
             elif table == 'Players':
                 session['roles'] = ['player']
-                return redirect('/dashboard/player')
             elif table == 'Coaches':
                 session['roles'] = ['coach']
-                return redirect('/dashboard/coach')
             elif table == 'Arbiters':
                 session['roles'] = ['arbiter']
-                return redirect('/dashboard/arbiter')
-    
-    
+            return redirect('/dashboard')
+
     return render_template('login.html')
 
 @main.route('/logout')
 def logout():
     session.pop('roles', None)
     return redirect('/login')
-
-
 
 
 
@@ -206,54 +200,12 @@ def fetch_available_players():
 
 # ----- DASHBOARD ROUTES (Prefix: /dashboard) -----
 
-@dashboard.route('/player')
-def player_dashboard():
-    try:
-        if session['roles'] == ['player']:
-            return render_template('player.html')
-        
-        return redirect(f'/dashboard/{session['roles'][0]}')
-    
-    except:
-        pass
-    return redirect('/login')
-    
-@dashboard.route('/coach')
-def coach_dashboard():
-    try:
-        if session['roles'] == ['coach']:
-            return render_template('coach.html')
-        
-        return redirect(f'/dashboard/{session['roles'][0]}')
-
-    except:
-        pass
-    return redirect('/login')
-
-@dashboard.route('/db-manager')
-def db_manager_dashboard():
-    try:
-        if session['roles'] == ['db-manager']:
-            return render_template('db-manager.html')
-        
-        return redirect(f'/dashboard/{session['roles'][0]}')
-
-    except:
-        pass
-    return redirect('/login')
-
-@dashboard.route('/arbiter')
-def arbiter_dashboard():
-    try:
-        if session['roles'] == ['arbiter']:
-            return render_template('arbiter.html')
-        
-        return redirect(f'/dashboard/{session['roles'][0]}')
-
-    except:
-        pass
-    return redirect('/login')
-
+@dashboard.route('/')
+def show_dashboard():
+    role = session.get('roles', [None])[0]
+    if role in ['db-manager', 'coach', 'player', 'arbiter']:
+        return render_template(f"{role}.html")
+    return redirect('login')
 
 
 # ----- DB MANAGER ROUTES (Prefix: /dashboard/db-manager) -----
@@ -265,6 +217,7 @@ def add_user():
     
     username = request.form['username']
     password = request.form['password']
+    password = encrypt_password(password)
     name = request.form['name']
     surname = request.form['surname']
     nationality = request.form['nationality']

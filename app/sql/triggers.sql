@@ -1,7 +1,6 @@
 DROP TRIGGER IF EXISTS CheckMatchConstraints;
 
-DELIMITER //
-
+DELIMITER $$
 CREATE TRIGGER CheckMatchConstraints
 BEFORE INSERT ON Matches
 FOR EACH ROW
@@ -45,6 +44,5 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = 'Conflict: Arbiter already assigned at this or next time slot.';
     END IF;
-END //
-
+END $$
 DELIMITER ;

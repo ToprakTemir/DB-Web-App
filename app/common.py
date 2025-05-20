@@ -1,6 +1,7 @@
 import mysql.connector
 from mysql.connector import Error
 import sys
+import bcrypt
 
 def get_db_connection():
     return mysql.connector.connect(
@@ -60,3 +61,12 @@ def execute_sql_command(command):
     db.close()
 
     return results
+
+def encrypt_password(password):
+    # Generate a salt
+    salt = bcrypt.gensalt()
+
+    # Hash the password with the salt
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+
+    return hashed_password.decode('utf-8')
