@@ -361,10 +361,10 @@
                     opponentsTable.innerHTML = ''; // Clear existing rows
                     
                     if (data.length === 0) {
-                        // Display a message if no halls exist
+                        // Display a message if no opponents exist
                         const row = opponentsTable.insertRow();
                         const cell = row.insertCell();
-                        cell.colSpan = 3;
+                        cell.colSpan = 5;
                         cell.textContent = 'No opponent history found.';
                         cell.style.textAlign = 'center';
                         cell.style.padding = '20px';
