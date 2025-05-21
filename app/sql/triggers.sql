@@ -16,9 +16,10 @@ BEGIN
         SET MESSAGE_TEXT = 'A team cannot play against itself.';
     END IF;
 
-    -- Safely compute next_slot
+    -- Safely compute next_slot and prev_slot
     SET slot_num = CONVERT(NEW.time_slot, UNSIGNED INTEGER);
     SET next_slot = CONVERT(slot_num + 1, CHAR);
+    SET prev_slot = CONVERT(slot_num - 1, CHAR);
 
     -- Check for same or next time_slot conflict at same table
     SELECT COUNT(*) INTO conflicting_matches

@@ -66,7 +66,15 @@ def fetch_available_arbiters():
     date = request.args.get('date')
     time_slot = request.args.get('time_slot')
 
-    results = execute_sql_command(f"SELECT username, name, surname FROM Arbiters WHERE username NOT IN (SELECT arbiter_username FROM Matches WHERE date = (STR_TO_DATE({date}, '%d-%m-%Y')) AND time_slot = {time_slot});")
+    sql_query = f'''
+    SELECT username, name, surname
+    FROM Arbiters
+    WHERE username NOT IN 
+    (SELECT arbiter_username FROM Matches WHERE date = (STR_TO_DATE('{date}', '%d-%m-%Y')) AND (time_slot = '{time_slot}' OR time_slot = '{int(time_slot) + 1}' OR time_slot = '{int(time_slot) - 1}'))
+    '''
+
+
+    results = execute_sql_command(sql_query)
     rows = results[0]
     columns = ['username', 'name', 'surname']
 
