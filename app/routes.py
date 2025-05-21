@@ -195,11 +195,13 @@ def fetch_available_players():
     FROM MatchAssignments ma
     JOIN Matches m ON ma.match_id = m.match_id
     WHERE m.date = '{match_date}' 
-    AND m.time_slot = {match_time_slot}
+    AND (m.time_slot = '{match_time_slot}' OR m.time_slot = '{int(match_time_slot) + 1}' OR m.time_slot = '{int(match_time_slot) - 1}')
     AND (ma.white_player = p.username OR ma.black_player = p.username)
     )
     ORDER BY p.elo_rating DESC;
     """
+
+    print(sql_query)
     
     results = execute_sql_command(sql_query)
     rows = results[0]
@@ -375,7 +377,7 @@ def assign_player():
             return jsonify({"success": False, "message": str(e)})
     else:
         try:
-            execute_sql_command(f"INSERT INTO MatchAssignments(match_id, {player_column}, {opponent_column}, result, {player_column_team}, {opponent_column_team}) VALUES ({match_id}, '{player_username}', NULL, NULL, {team_id}, NULL);")
+            execute_sql_command(f"INSERT INTO MatchAssignments(match_id, {player_column}, {opponent_column}, result, {player_column_team}, {opponent_column_team}) VALUES ({match_id}, '{player_username}', NULL, NULL, {team_id}, {team2_id});")
             return jsonify({"success": True})
         except Exception as e:
             return jsonify({"success": False, "message": str(e)})
