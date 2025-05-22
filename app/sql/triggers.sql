@@ -1,4 +1,5 @@
 DROP TRIGGER IF EXISTS CheckMatchConstraints;
+DROP TRIGGER IF EXISTS CoachCreation;
 
 DELIMITER $$
 CREATE TRIGGER CheckMatchConstraints
@@ -46,4 +47,27 @@ BEGIN
         SET MESSAGE_TEXT = 'Conflict: Arbiter already assigned at this or next time slot.';
     END IF;
 END $$
+
+
+CREATE TRIGGER CoachCreation
+BEFORE INSERT ON Coaches
+FOR EACH ROW
+BEGIN
+    DECLARE overlap INT;
+
+    IF NEW.contract_start > NEW.contract_finish THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Contract end date cannot be earlier than contract start date';
+    END IF;
+
+    SELECT COUNT(*) INTO overlap
+    FROM Coaches
+    WHERE username = NEW.username AND (NEW.contract_start < contract_finish AND NEW.contract_finish > contract_start);
+
+    IF overlap > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'This coach has an overlapping contract in the given interval';
+    END IF;
+END $$
+    
 DELIMITER ;

@@ -80,8 +80,8 @@ END //
 
 
 CREATE PROCEDURE InsertCoach(
-    IN in_username VARCHAR(50),
-    IN in_password VARCHAR(50),
+    IN in_username VARCHAR(255),
+    IN in_password VARCHAR(255),
     IN in_name VARCHAR(50),
     IN in_surname VARCHAR(50),
     IN in_nationality VARCHAR(50),
@@ -148,8 +148,8 @@ END //
 
 
 CREATE PROCEDURE InsertArbiter(
-    IN in_username VARCHAR(50),
-    IN in_password VARCHAR(50),
+    IN in_username VARCHAR(255),
+    IN in_password VARCHAR(255),
     IN in_name VARCHAR(50),
     IN in_surname VARCHAR(50),
     IN in_nationality VARCHAR(50),
