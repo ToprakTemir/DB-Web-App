@@ -91,8 +91,8 @@ def seed_data():
                         val = f"{year}-{month.zfill(2)}-{day.zfill(2)}"
                     except Exception as e:
                         print(f"Failed to convert date '{val}' in column '{col}': {e}")
-                if isinstance(val, str) and col == 'password':
-                    val = encrypt_password(val)
+                if col == 'password':
+                    val = encrypt_password(str(val))
                 row_data.append(val)
 
 

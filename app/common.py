@@ -1,6 +1,5 @@
 import mysql.connector
 from mysql.connector import Error
-import sys
 import bcrypt
 
 def get_db_connection():
