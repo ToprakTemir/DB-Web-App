@@ -1,6 +1,6 @@
 import mysql.connector
 from mysql.connector import Error
-import bcrypt
+import bcrypt, re
 
 def get_db_connection():
     return mysql.connector.connect(
@@ -77,3 +77,21 @@ def verify_password(plain_password, hashed_password):
 
     # Compare the plain password (hashed) with the stored hashed password
     return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password_bytes)
+
+def password_policy(password):
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters long."
+
+    if not re.search(r'[A-Z]', password):
+        return False, "Password must include at least one uppercase letter."
+
+    if not re.search(r'[a-z]', password):
+        return False, "Password must include at least one lowercase letter."
+
+    if not re.search(r'\d', password):
+        return False, "Password must include at least one digit."
+
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>_\-\\/\[\]~`+=]', password):
+        return False, "Password must include at least one special character."
+
+    return True, "Password is valid."

@@ -1,7 +1,7 @@
 # app/routes.py
 
 from flask import Blueprint, render_template, redirect, request, session, jsonify
-from app.common import execute_sql_command, encrypt_password, verify_password
+from app.common import execute_sql_command, encrypt_password, verify_password, password_policy
 import json
 
 main = Blueprint('main', __name__)
@@ -239,8 +239,12 @@ def add_user():
     
     username = request.form['username']
     password = request.form['password']
+    
+    policy_check, message = password_policy(password)
+    if not policy_check:
+        return jsonify({"success": False, "message": message})
+   
     password = encrypt_password(password)
-    print(password)
     name = request.form['name']
     surname = request.form['surname']
     nationality = request.form['nationality']
