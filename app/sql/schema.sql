@@ -3,8 +3,8 @@ CREATE DATABASE IF NOT EXISTS ChessDB;
 USE ChessDB;
 
 CREATE TABLE DBManagers(
-    username VARCHAR(50) PRIMARY KEY,
-    password VARCHAR(50) NOT NULL
+    username VARCHAR(255) PRIMARY KEY,
+    password VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE Titles(
@@ -13,8 +13,8 @@ CREATE TABLE Titles(
 );
 
 CREATE TABLE Players(
-    username VARCHAR(50) PRIMARY KEY,
-    password VARCHAR(50) NOT NULL,
+    username VARCHAR(255) PRIMARY KEY,
+    password VARCHAR(255) NOT NULL,
     name VARCHAR(50) NOT NULL,
     surname VARCHAR(50) NOT NULL,
     nationality VARCHAR(50) NOT NULL,
@@ -25,7 +25,7 @@ CREATE TABLE Players(
     FOREIGN KEY (title_id) REFERENCES Titles(title_id)
                                 ON DELETE RESTRICT
                                 ON UPDATE CASCADE,
-    CHECK (elo_rating >= 1000)
+    CONSTRAINT check_elo CHECK (elo_rating >= 1000)
 );
 
 CREATE TABLE Sponsors(
@@ -55,8 +55,8 @@ CREATE TABLE PlayerTeams(
 );
 
 CREATE TABLE Coaches(
-    username VARCHAR(50) PRIMARY KEY,
-    password VARCHAR(50) NOT NULL,
+    username VARCHAR(255) PRIMARY KEY,
+    password VARCHAR(255) NOT NULL,
     name VARCHAR(50) NOT NULL,
     surname VARCHAR(50) NOT NULL,
     nationality VARCHAR(50) NOT NULL,
@@ -79,8 +79,8 @@ CREATE TABLE CoachCertifications(
 );
 
 CREATE TABLE Arbiters(
-    username VARCHAR(50) PRIMARY KEY,
-    password VARCHAR(50) NOT NULL,
+    username VARCHAR(255) PRIMARY KEY,
+    password VARCHAR(255) NOT NULL,
     name VARCHAR(50) NOT NULL,
     surname VARCHAR(50) NOT NULL,
     nationality VARCHAR(50) NOT NULL,

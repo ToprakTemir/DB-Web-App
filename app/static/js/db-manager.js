@@ -61,3 +61,86 @@ function loadHalls() {
 window.onload = function() {
     loadHalls();
 };
+
+document.addEventListener('DOMContentLoaded', function(){
+    // Add event listener to add user form
+    document.getElementById('add-user-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        
+        // Submit the form data via AJAX
+        const formData = new FormData(this);
+        
+        fetch('/db-manager/add-user', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showMessage('User created successfully!', 'success');
+                this.reset(); // Reset form fields
+                
+            } else {
+                showMessage(data.message || 'Failed to add user.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding user:', error);
+            showMessage('Failed to add user. Please try again later.', 'error');
+        });
+    });
+
+    // Add event listener to rename hall form
+    document.getElementById('rename-hall-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        
+        // Submit the form data via AJAX
+        const formData = new FormData(this);
+        
+        fetch('/db-manager/rename-hall', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                showMessage('Renamed hall successfully!', 'success');
+                this.reset(); // Reset form fields
+                
+            } else {
+                showMessage(data.message || 'Failed to rename hall.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding user:', error);
+            showMessage('Failed to rename hall. Please try again later.', 'error');
+        });
+    });
+})
+
+// Function to show success/error messages
+function showMessage(message, type) {
+    const messageContainer = document.getElementById('message-container');
+    
+    // Create message element
+    const messageDiv = document.createElement('div');
+    messageDiv.className = type; // 'success' or 'error'
+    messageDiv.textContent = message;
+    
+    // Clear any existing messages
+    messageContainer.innerHTML = '';
+    messageContainer.appendChild(messageDiv);
+    
+    // Automatically remove message after 5 seconds
+    setTimeout(function() {
+        messageDiv.remove();
+    }, 5000);
+}

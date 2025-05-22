@@ -14,7 +14,7 @@
             <!-- Error messages will be displayed here -->
         </div>
         
-        <form action="/login" method="POST">
+        <form id="login-form" action="/login" method="POST">
             <div class="form-group">
                 <label for="username">Username</label>
                 <input type="text" id="username" name="username" required>
@@ -29,4 +29,5 @@
         </form>
     </div>
 </body>
+<script src="{{ url_for('static', filename='js/login.js') }}"></script>
 </html>

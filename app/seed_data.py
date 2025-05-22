@@ -3,7 +3,7 @@ import pandas as pd
 import os
 
 import mysql.connector
-from app.common import get_db_connection, execute_sql_file
+from app.common import get_db_connection, execute_sql_file, encrypt_password
 
 def seed_data():
 
@@ -91,6 +91,8 @@ def seed_data():
                         val = f"{year}-{month.zfill(2)}-{day.zfill(2)}"
                     except Exception as e:
                         print(f"Failed to convert date '{val}' in column '{col}': {e}")
+                if isinstance(val, str) and col == 'password':
+                    val = encrypt_password(val)
                 row_data.append(val)
 
 

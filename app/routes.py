@@ -1,7 +1,7 @@
 # app/routes.py
 
 from flask import Blueprint, render_template, redirect, request, session, jsonify
-from app.common import execute_sql_command, encrypt_password
+from app.common import execute_sql_command, encrypt_password, verify_password
 import json
 
 main = Blueprint('main', __name__)
@@ -23,24 +23,20 @@ def home():
 def login():
     if request.method == 'POST':
         username = request.form['username']
-        password = request.form['password']
+        plain_password = request.form['password']
 
-        results = execute_sql_command(f"CALL CheckUserCredentials('{username}', '{password}', @match_found, @user_table); SELECT @match_found, @user_table;")
-        query_result = results[1]
-        found, table = query_result[0]
-        if found:
-            session['username'] = username
-            if table == 'DBManagers':
-                session['roles'] = ['db-manager']
-            elif table == 'Players':
-                session['roles'] = ['player']
-            elif table == 'Coaches':
-                session['roles'] = ['coach']
-            elif table == 'Arbiters':
-                session['roles'] = ['arbiter']
-            return redirect('/dashboard')
-
-    return render_template('login.html')
+        password_tuple_list = execute_sql_command(f"CALL CheckUserCredentials('{username}');")[0]
+        
+        if password_tuple_list:
+            hashed_password, role = password_tuple_list[0]
+            if verify_password(plain_password, hashed_password):
+                session['username'] = username
+                session['roles'] = [role]
+                return jsonify({'success': True, 'redirect': '/dashboard'})
+        return jsonify({"success": False, "message": "Incorrect username or password."})
+    
+    else:
+        return render_template('login.html')
 
 @main.route('/logout')
 def logout():
@@ -244,6 +240,7 @@ def add_user():
     username = request.form['username']
     password = request.form['password']
     password = encrypt_password(password)
+    print(password)
     name = request.form['name']
     surname = request.form['surname']
     nationality = request.form['nationality']
@@ -301,7 +298,7 @@ def add_user():
             execute_sql_command(f"DELETE FROM TABLE Arbiters WHERE username = {username}")
             return jsonify({"success": False, "message": str(e)})
 
-    return redirect('/db-manager')
+    return jsonify({"success": True})
 
 @db_manager.route('/rename-hall', methods=['POST'])
 def rename_hall():
