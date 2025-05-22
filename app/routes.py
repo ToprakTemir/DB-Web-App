@@ -562,11 +562,25 @@ def fetch_opponent_history():
 @player.route('/frequent-opponent')
 def fetch_frequent_opponent():
     opponent_history = fetch_opponent_history()
-    try:
-        most_frequent = json.loads(opponent_history.get_data(as_text=True))[0] # ORDER BY used in opponent history query
-        return jsonify(most_frequent)
-    except:
+
+    opponent_list = json.loads(opponent_history.get_data(as_text=True))
+    if len(opponent_list) == 0:
         return jsonify({'player_name': '-', 'elo_rating': '-', 'title_name': '', 'nationality': '', 'times_played': '-'})
+    else:
+        tie_count = 1
+        top_opponent = opponent_list[0]
+        most_matches = top_opponent['times_played']
+        total_elo = top_opponent['elo_rating']
+        names = top_opponent['player_name']
+        for opponent in opponent_list[1:]:
+            if opponent['times_played'] < most_matches:
+                break
+            tie_count += 1
+            total_elo += opponent['elo_rating']
+            names += f", {opponent['player_name']}"
+        avg_elo = total_elo / tie_count
+        return jsonify({'player_name': names, 'elo_rating': avg_elo, 'title_name': '', 'nationality': '', 'times_played': top_opponent['times_played']})
+
 
 @player.route('/match-history')
 def fetch_match_history():
