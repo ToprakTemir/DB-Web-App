@@ -23,6 +23,7 @@ def execute_sql_file(filename):
         cur.execute(command)
     except Exception as e:
         print("Query execution failed:", e)
+        db.rollback()
         raise e
 
     results = []
@@ -45,6 +46,7 @@ def execute_sql_command(command):
         cur.execute(command)
     except Exception as e:
         print("Query execution failed:", e)
+        db.rollback()
         raise e
 
     

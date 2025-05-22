@@ -266,7 +266,7 @@ def add_user():
                 execute_sql_command(f"CALL InsertPlayerTeam('{username}', {team_id});")
         # If PlayerTeams insertion fails, revert Players insertion
         except Exception as e:
-            execute_sql_command(f"DELETE FROM TABLE Players WHERE username = '{username}';")
+            execute_sql_command(f"DELETE FROM Players WHERE username = '{username}';")
             return jsonify({"success": False, "message": str(e)})
 
 
@@ -284,7 +284,7 @@ def add_user():
         try:
             execute_sql_command(f"CALL InsertCoachCertification('{username}', '{coach_certification}');")
         except Exception as e:
-            execute_sql_command(f"DELETE FROM TABLE Coaches WHERE username = {username}")
+            execute_sql_command(f"DELETE FROM Coaches WHERE username = {username}")
             return jsonify({"success": False, "message": str(e)})
 
     elif user_type == 'arbiter':
@@ -299,7 +299,7 @@ def add_user():
         try:
             execute_sql_command(f"CALL InsertArbiterCertification('{username}', '{arbiter_certification}');")
         except Exception as e:
-            execute_sql_command(f"DELETE FROM TABLE Arbiters WHERE username = {username}")
+            execute_sql_command(f"DELETE FROM Arbiters WHERE username = {username}")
             return jsonify({"success": False, "message": str(e)})
 
     return jsonify({"success": True})
