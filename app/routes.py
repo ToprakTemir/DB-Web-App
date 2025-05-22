@@ -392,7 +392,7 @@ def delete_match(match_id):
     team_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{coach_username}';")[0][0][0]
     
     # Check if match belongs to coach's team
-    check_query = f"SELECT COUNT(*) FROM Matches WHERE match_id = {match_id} AND (team1_id = {team_id} OR team2_id = {team_id});"
+    check_query = f"SELECT COUNT(*) FROM Matches WHERE match_id = {match_id} AND team1_id = {team_id};"
     is_coach_match = execute_sql_command(check_query)[0][0][0] > 0
     
     if not is_coach_match:
