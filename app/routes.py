@@ -348,7 +348,7 @@ def assign_player():
     player_username = data.get('player_username')
     coach_username = session['username']
 
-    team_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{coach_username}';")[0][0][0]
+    player_team_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{coach_username}';")[0][0][0]
 
     # Get both teams from the match
     match_check = execute_sql_command(f"SELECT team1_id, team2_id FROM Matches WHERE match_id = {match_id};")
@@ -358,15 +358,16 @@ def assign_player():
     team1_id = match_check[0][0][0]
     team2_id = match_check[0][0][1]
 
-    if team_id != team1_id and team_id != team2_id:
+    if player_team_id != team1_id and player_team_id != team2_id:
         return jsonify({"success": False, "message": "This match does not belong to your team."})
 
     # Determine player side
-    is_white = team_id == team1_id
+    is_white = player_team_id == team1_id
     player_column = "white_player" if is_white else "black_player"
     player_column_team = "team1_id" if is_white else "team2_id"
     opponent_column = "black_player" if is_white else "white_player"
     opponent_column_team = "team2_id" if is_white else "team1_id"
+    opponent_team_id = team2_id if is_white else team1_id
 
     assignment_check = execute_sql_command(f"SELECT COUNT(*) FROM MatchAssignments WHERE match_id = {match_id};")
 
@@ -378,7 +379,7 @@ def assign_player():
             return jsonify({"success": False, "message": str(e)})
     else:
         try:
-            execute_sql_command(f"INSERT INTO MatchAssignments(match_id, {player_column}, {opponent_column}, result, {player_column_team}, {opponent_column_team}) VALUES ({match_id}, '{player_username}', NULL, NULL, {team_id}, {team2_id});")
+            execute_sql_command(f"INSERT INTO MatchAssignments(match_id, {player_column}, {opponent_column}, result, {player_column_team}, {opponent_column_team}) VALUES ({match_id}, '{player_username}', NULL, NULL, {player_team_id}, {opponent_team_id});")
             return jsonify({"success": True})
         except Exception as e:
             return jsonify({"success": False, "message": str(e)})
@@ -391,7 +392,7 @@ def delete_match(match_id):
     team_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{coach_username}';")[0][0][0]
     
     # Check if match belongs to coach's team
-    check_query = f"SELECT COUNT(*) FROM Matches WHERE match_id = {match_id} AND team1_id = {team_id};"
+    check_query = f"SELECT COUNT(*) FROM Matches WHERE match_id = {match_id} AND (team1_id = {team_id} OR team2_id = {team_id});"
     is_coach_match = execute_sql_command(check_query)[0][0][0] > 0
     
     if not is_coach_match:
