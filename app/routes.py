@@ -81,7 +81,7 @@ def fetch_available_arbiters():
 
 @data.route('/opponent-teams')
 def fetch_opponent_teams():
-    results = execute_sql_command(f"SELECT * FROM Teams WHERE team_id != (SELECT team_id FROM Coaches WHERE username = '{session['username']}');")
+    results = execute_sql_command(f"SELECT * FROM Teams WHERE team_id NOT IN (SELECT team_id FROM Coaches WHERE username = '{session['username']}' AND contract_start < CURDATE() AND contract_finish > CURDATE());")
     rows = results[0]
     columns = ['team_id', 'team_name', 'sponsor_id']
 
@@ -116,7 +116,10 @@ def fetch_unassigned_matches():
 @data.route('/coach-matches')
 def fetch_coach_matches():
     coach_username = session['username']
-    team_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{coach_username}';")[0][0][0]
+    try:
+        team_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{coach_username}' AND contract_start < CURDATE() AND contract_finish > CURDATE();")[0][0][0]
+    except:
+        return jsonify([])
     
     # Query to get all matches for the coach's team with player information
     sql_query = f"""
@@ -173,8 +176,11 @@ def fetch_coach_matches():
 def fetch_available_players():
     match_id = request.args.get('match_id')
     coach_username = session['username']
-    team_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{coach_username}';")[0][0][0]
-    
+    try:
+        team_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{coach_username}' AND contract_start < CURDATE() AND contract_finish > CURDATE();")[0][0][0]
+    except:
+        return jsonify([])
+
     # Get match date and time
     match_info = execute_sql_command(f"SELECT date, time_slot FROM Matches WHERE match_id = {match_id};")
     match_date = match_info[0][0][0]
@@ -211,8 +217,11 @@ def fetch_available_players():
 @data.route('/coach-team')
 def fetch_coach_team():
     coach_username = session['username']
-    sql_query = f"SELECT t.team_name FROM Teams t JOIN Coaches c ON c.team_id = t.team_id WHERE username = '{coach_username}'"
-    team_name = execute_sql_command(sql_query)[0][0][0]
+    sql_query = f"SELECT t.team_name FROM Teams t JOIN Coaches c ON c.team_id = t.team_id WHERE username = '{coach_username}' AND contract_start < CURDATE() AND contract_finish > CURDATE()"
+    try:
+        team_name = execute_sql_command(sql_query)[0][0][0]
+    except:
+        return jsonify([])
 
     return jsonify({'team_name': team_name})
 
@@ -330,7 +339,10 @@ def create_match():
     time_slot = request.form['time_slot']
     hall_id = request.form['hall_id']
     table_id = request.form['table_id']
-    team1_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{session['username']}';")[0][0][0]
+    try:
+        team1_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{session['username']}' AND contract_start < CURDATE() AND contract_finish > CURDATE();")[0][0][0]
+    except:
+        return jsonify({"success": False, "message": "Failed to create fatch: You don't have an active contract."})
     team2_id = request.form['opponent_team_id']
     arbiter_username = request.form['arbiter_name']
     ratings = 'NULL'
@@ -348,7 +360,11 @@ def assign_player():
     player_username = data.get('player_username')
     coach_username = session['username']
 
-    player_team_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{coach_username}';")[0][0][0]
+
+    try:
+        player_team_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{coach_username}' AND contract_start < CURDATE() AND contract_finish > CURDATE();")[0][0][0]
+    except:
+        return jsonify({"success": False, "message": "Failed to assign player: You don't have an active contract."})
 
     # Get both teams from the match
     match_check = execute_sql_command(f"SELECT team1_id, team2_id FROM Matches WHERE match_id = {match_id};")
@@ -389,8 +405,11 @@ def assign_player():
 @coach.route('/delete-match/<int:match_id>', methods=['DELETE'])
 def delete_match(match_id):
     coach_username = session['username']
-    team_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{coach_username}';")[0][0][0]
-    
+    try:
+        team_id = execute_sql_command(f"SELECT team_id FROM Coaches WHERE username = '{coach_username}' AND contract_start < CURDATE() AND contract_finish > CURDATE();")[0][0][0]
+    except:
+        return jsonify({"success": False, "message": "Failed to delete match: You don't have an active contract."})
+
     # Check if match belongs to coach's team
     check_query = f"SELECT COUNT(*) FROM Matches WHERE match_id = {match_id} AND team1_id = {team_id};"
     is_coach_match = execute_sql_command(check_query)[0][0][0] > 0

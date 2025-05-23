@@ -451,7 +451,12 @@ function loadCoachTeam(){
         })
         .then(data => {
             const teamName = document.getElementById("team-name");
-            teamName.textContent = data.team_name;
+            if (data.length === 0){   
+                teamName.textContent = "No Active Contract";
+            }
+            else{
+                teamName.textContent = data.team_name;
+            }
         })
         .catch(error => {
             console.error('Error loading coach team:', error);
