@@ -470,7 +470,7 @@ def fetch_assigned_matches():
        h.hall_name, m.table_id, t1.team_name as team1, t2.team_name as team2,
        CONCAT(p1.name, ' ', p1.surname) as player1,
        CONCAT(p2.name, ' ', p2.surname) as player2,
-       m.ratings
+       m.ratings, ma.result
     FROM Matches m
     JOIN Halls h ON m.hall_id = h.hall_id
     JOIN Teams t1 ON m.team1_id = t1.team_id
@@ -484,7 +484,7 @@ def fetch_assigned_matches():
 
     results = execute_sql_command(sql_query)
     rows = results[0]
-    columns = ['match_id', 'match_date', 'time_slot', 'hall_name', 'table_id', 'team1', 'team2', 'player1', 'player2', 'ratings']
+    columns = ['match_id', 'match_date', 'time_slot', 'hall_name', 'table_id', 'team1', 'team2', 'player1', 'player2', 'ratings', 'result']
 
     # Convert to list of dicts
     result = [dict(zip(columns, row)) for row in rows]
@@ -520,6 +520,25 @@ def rate_match():
     sql_query = f'''
     UPDATE Matches
     SET ratings = {rating}
+    WHERE match_id = {match_id}
+    
+    '''
+
+    try:
+        execute_sql_command(sql_query)
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)})
+    
+@arbiter.route('/update-result', methods=['POST'])
+def update_result():
+    data = request.json
+    match_id = data.get('match_id')
+    result = data.get('result')
+
+    sql_query = f'''
+    UPDATE MatchAssignments
+    SET result = '{result}'
     WHERE match_id = {match_id}
     
     '''
