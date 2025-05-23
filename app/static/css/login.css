@@ -1,51 +1,171 @@
-body {
-    font-family: Arial, sans-serif;
+/* ChessDB Login Styles */
+* {
     margin: 0;
-    padding: 20px;
-    background-color: #f5f5f5;
-}
-.container {
-    max-width: 400px;
-    margin: 50px auto;
-    background-color: white;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-h1 {
-    text-align: center;
-    color: #333;
-}
-.form-group {
-    margin-bottom: 15px;
-}
-label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-input[type="text"], input[type="password"] {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 3px;
+    padding: 0;
     box-sizing: border-box;
 }
-button {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    width: 100%;
-    font-size: 16px;
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: #e0e0e0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
 }
-button:hover {
-    background-color: #45a049;
+
+/* Chess pattern background */
+body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        linear-gradient(45deg, rgba(255,255,255,0.02) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255,255,255,0.02) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.02) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.02) 75%);
+    background-size: 60px 60px;
+    background-position: 0 0, 0 30px, 30px -30px, -30px 0px;
+    z-index: -1;
+}
+
+.container {
+    background: rgba(45, 45, 45, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 3rem;
+    border-radius: 20px;
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    width: 100%;
+    max-width: 420px;
+    border: 2px solid rgba(255, 215, 0, 0.2);
+    position: relative;
+}
+
+.container::before {
+    content: '♔';
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2rem;
+    background: #2d2d2d;
+    padding: 0 15px;
+    color: #ffd700;
+}
+
+h1 {
+    text-align: center;
+    color: #ffd700;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    font-weight: 300;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #b0b0b0;
+    font-weight: 500;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    color: #e0e0e0;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+    outline: none;
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+button[type="submit"] {
+    width: 100%;
+    padding: 1rem;
+    background: linear-gradient(135deg, #ffd700 0%, #ffb347 100%);
+    color: #1a1a1a;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+}
+
+button[type="submit"]:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4);
+    background: linear-gradient(135deg, #ffdc00 0%, #ffc947 100%);
+}
+
+button[type="submit"]:active {
+    transform: translateY(-1px);
+}
+
+.error, .success {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 3px;
 }
 .error {
-    color: red;
-    text-align: center;
-    margin-bottom: 15px;
+    background-color: rgba(45, 45, 45, 0.95);
+    color: #c62828;
+}
+.success {
+    background-color: rgba(45, 45, 45, 0.95);
+    color: #2e7d32;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+    .container {
+        margin: 1rem;
+        padding: 2rem;
+    }
+    
+    h1 {
+        font-size: 2rem;
+    }
 }
