@@ -124,6 +124,18 @@ document.addEventListener('DOMContentLoaded', function(){
             showMessage('Failed to rename hall. Please try again later.', 'error');
         });
     });
+
+    // Add event listener to delete match form
+    document.getElementById('delete-user-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const formData = new FormData(this);
+        const username = formData.get('username');
+
+        if (confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+            deleteUser(username);
+        }
+    });
 })
 
 // Function to show success/error messages
@@ -143,4 +155,25 @@ function showMessage(message, type) {
     setTimeout(function() {
         messageDiv.remove();
     }, 5000);
+}
+
+function deleteUser(username) {
+    fetch(`/db-manager/delete-user/${username}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Network response was not ok');
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            showMessage('User deleted successfully!', 'success');
+        } else {
+            showMessage(data.message || 'Failed to delete user.', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting user:', error);
+        showMessage('Failed to delete user. Please try again later.', 'error');
+    });
 }

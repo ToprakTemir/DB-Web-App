@@ -19,6 +19,7 @@
         
         <div class="tab">
             <button class="tablinks active" onclick="openTab(event, 'addUser')">Add New User</button>
+            <button class="tablinks" onclick="openTab(event, 'deleteUser')">Delete User</button>
             <button class="tablinks" onclick="openTab(event, 'renameHall')">Rename Hall</button>
         </div>
         
@@ -140,6 +141,15 @@
                 <button type="submit">Add User</button>
             </form>
         </div>
+
+        <!-- Delete User Tab -->
+        <form id="delete-user-form">
+            <div class="form-group">
+                <label for="username-to-delete">Username</label>
+                <input type="text" id="username-to-delete" name="username" required>
+            </div>
+            <button type="submit">Delete User</button>
+        </form>
         
         <!-- Rename Hall Tab -->
         <div id="renameHall" class="tabcontent">

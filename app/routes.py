@@ -323,6 +323,35 @@ def rename_hall():
         return jsonify({"success": False, "message": str(e)})
     return jsonify({"success": True})
 
+@db_manager.route('/delete-user/<username>', methods=['DELETE'])
+def delete_user(username):
+    sql_query = f'''
+    SELECT username, 'players' AS role
+    FROM Players
+    WHERE username = '{username}'
+    
+    UNION
+
+    SELECT username, 'coaches' AS role
+    FROM Coaches
+    WHERE username = '{username}'
+    
+    UNION
+    
+    SELECT username, 'arbiters' AS role
+    FROM Arbiters
+    WHERE username = '{username}';
+    '''
+
+    try:
+        _, table = execute_sql_command(sql_query)[0][0]
+        sql_query = f'''
+        DELETE FROM {table} WHERE username = '{username}';
+        '''
+        execute_sql_command(sql_query)
+        return jsonify({"success": True})
+    except:
+        return jsonify({"success": False, "message": "A player, coach or arbiter with this username does not exist."})
 
 
 
