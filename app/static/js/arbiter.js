@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Assuming backend returns { success: true, message: "Rating saved" }
             if (resp.success) {
                 alert(`Result of ${resultInput.value} submitted for match #${matchId}`);
-                hideModal('update-match-modal');
+                hideModal('update-result-modal');
                 loadAssignedMatches();
             } else {
                 alert(`Error: ${resp.message || 'Unknown error'}`);
