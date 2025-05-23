@@ -1,6 +1,10 @@
 Before the following steps, please make sure that you have a MySQL connection with host="127.0.0.1", port=3306, user="root", password="1234" and database="ChessDB". Also make sure that you have python and pip installed in your system.
 
 - First open a command shell on the same directory as run.py.
+- Create a virtual environment with the command:
+  ``` python3 -m venv .venv ```
+- Activate the virtual environment with the command:
+  ``` .venv\Scripts\activate ```
 - Download the required packages by running:
   ``` pip install -r requirements.txt ```
 - Next:
