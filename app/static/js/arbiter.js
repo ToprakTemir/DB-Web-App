@@ -32,6 +32,12 @@ function showRateMatchModal(matchId) {
     showModal('rate-modal');
 }
 
+// Show the rate match modal
+function showUpdateResultModal(matchId) {
+    document.getElementById('update-result-id').value = matchId;
+    showModal('update-result-modal');
+}
+
 // Load assigned matches
 function loadAssignedMatches() {
     fetch('/arbiter/assigned-matches')
@@ -54,7 +60,16 @@ function loadAssignedMatches() {
                     <td>${match.team2}</td>
                     <td>${match.player1}</td>
                     <td>${match.player2}</td>
+                    <td>${match.result == null ? 'Not updated.' : match.result}</td>
                     <td>${match.ratings == null ? 'Not rated.' : match.ratings}</td>
+                    <td>
+                        ${parseDate(match.match_date) > new Date() ?
+                        'Upcoming match' :
+                        (match.result == null ? 
+                            `<button class="rate-btn" onclick="showUpdateResultModal(${match.match_id})">Update Result</button>` :
+                            'Already updated.')
+                        }
+                    </td>
                     <td>
                         ${parseDate(match.match_date) > new Date() ?
                         'Upcoming match' :
@@ -151,6 +166,46 @@ document.addEventListener('DOMContentLoaded', function() {
                 loadAssignedMatches();
             } else {
                 alert(`Error: ${result.message || 'Unknown error'}`);
+            }
+        } catch (error) {
+            alert(`Submission error: ${error.message}`);
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+
+
+    // Add form submission handler for result updating
+    document.getElementById('update-result-form').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const matchId = document.getElementById('update-result-id').value;
+        const resultInput = document.getElementById('result');
+
+        // Disable submit button to prevent multiple submissions
+        const submitBtn = this.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+
+        try {
+            const response = await fetch('/arbiter/update-result', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ match_id: matchId, result: resultInput.value })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update result. Please try again.');
+            }
+
+            const resp = await response.json();
+
+            // Assuming backend returns { success: true, message: "Rating saved" }
+            if (resp.success) {
+                alert(`Result of ${resultInput.value} submitted for match #${matchId}`);
+                hideModal('update-match-modal');
+                loadAssignedMatches();
+            } else {
+                alert(`Error: ${resp.message || 'Unknown error'}`);
             }
         } catch (error) {
             alert(`Submission error: ${error.message}`);

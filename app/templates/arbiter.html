@@ -36,8 +36,10 @@
                         <th>Team 2</th>
                         <th>Player 1</th>
                         <th>Player 2</th>
+                        <th>Result</th>
                         <th>Rating</th>
-                        <th>Action</th>
+                        <th>Update Result</th>
+                        <th>Rate Match</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -51,7 +53,11 @@
                         <td>Team Chess Masters</td>
                         <td>Alex Johnson</td>
                         <td>Mike Williams</td>
+                        <td>white wins</td>
                         <td>Completed - Not Rated</td>
+                        <td>
+                            <button class="rate-btn" onclick="showUpdateResultModal(1)">Update Result</button>
+                        </td>
                         <td>
                             <button class="rate-btn" onclick="showRateMatchModal(1)">Rate Match</button>
                         </td>
@@ -66,6 +72,10 @@
                         <td>Emma Wilson</td>
                         <td>Daniel Brown</td>
                         <td>Upcoming</td>
+                        <td>Upcoming</td>
+                        <td>
+                            <button class="rate-btn" onclick="showUpdateResultModal(1)">Update Result</button>
+                        </td>
                         <td>
                             <button class="rate-btn" disabled>Rate Match</button>
                         </td>
@@ -79,7 +89,11 @@
                         <td>Royal Knights</td>
                         <td>Robert Davis</td>
                         <td>Sarah Wilson</td>
+                        <td>black wins</td>
                         <td>Rated (Score: 8)</td>
+                        <td>
+                            <button class="rate-btn" onclick="showUpdateResultModal(1)">Update Result</button>
+                        </td>
                         <td>
                             Already rated.
                         </td>
@@ -100,6 +114,29 @@
                     <h3>Average Rating Given</h3>
                     <div class="stat-value">7.3</div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Result Match Modal -->
+        <div id="update-result-modal" class="modal">
+            <div class="modal-content">
+                <h3>Update Result</h3>
+                <form id="update-result-form" action="/arbiter/update-result" method="POST">
+                    <input type="hidden" id="update-result-id" name="match_id">
+                    
+                    <div class="form-group">
+                        <label for="result">Result</label>
+                        <select id="result" name="result" required>
+                                <option value="">Select Result</option>
+                                <option value="white wins">White Wins</option>
+                                <option value="black wins">Black Wins</option>
+                                <option value="draw">Draw</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit">Submit Result</button>
+                    <button type="button" onclick="hideModal('update-result-modal')">Cancel</button>
+                </form>
             </div>
         </div>
         
